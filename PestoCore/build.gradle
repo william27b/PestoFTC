@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://jitpack.io' }
+}
+
+android {
+    compileSdkVersion 29
+
+    defaultConfig {
+        minSdkVersion 24
+        //noinspection ExpiredTargetSdkVersion
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+            }
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:15.0'
+    compileOnly "androidx.annotation:annotation:1.7.0"
+
+    compileOnly 'org.firstinspires.ftc:RobotCore:9.0.1'
+    compileOnly 'org.firstinspires.ftc:Hardware:9.0.1'
+    compileOnly 'org.firstinspires.ftc:FtcCommon:9.0.1'
+    compileOnly 'org.reflections:reflections:0.10.2'
+
+    implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:main-SNAPSHOT'
+}
