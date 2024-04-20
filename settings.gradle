@@ -1,2 +1,2 @@
-rootProject.name = "PestoFTC"
-include ':PestoCore'
+rootProject.name = 'PestoFTC'
+include 'PestoCore'

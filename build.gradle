@@ -15,10 +15,6 @@ plugins {
     id 'maven-publish'
 }
 
-allprojects {
-    version = "1.0"
-}
-
 subprojects {
     apply plugin: 'maven-publish'
 
@@ -27,11 +23,21 @@ subprojects {
     }
 }
 
+project(':PestoCore') {
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['src/main/java']
+            }
+        }
+    }
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            groupId = 'com.william27b'
+            groupId = 'com.shprobotics'
             artifactId = 'pestoftc'
             version = '1.0.0'
         }
