@@ -4,10 +4,15 @@ buildscript{
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:7.2.0"
+        classpath "com.android.tools.build:gradle:7.2.2"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
+}
+
+plugins {
+    id 'java'
+    id 'maven-publish'
 }
 
 allprojects {
@@ -24,7 +29,7 @@ subprojects {
 
 publishing {
     publications {
-        gprJava(MavenPublication) {
+        mavenJava(MavenPublication) {
             from components.java
             groupId = 'com.william27b'
             artifactId = 'pestoftc'
@@ -33,12 +38,16 @@ publishing {
     }
     repositories {
         maven {
-            name = 'GitHubPackages'
             url = uri("https://maven.pkg.github.com/william27b/PestoFTC")
             credentials {
-                username = project.findProperty("repoUser") ?: System.getenv("REPO_USER")
-                password = project.findProperty("repoPassword") ?: System.getenv("REPO_PASSWORD")
+                username = findProperty("REPO_USER") ?: System.getenv("REPO_USER")
+                password = findProperty("REPO_PASSWORD") ?: System.getenv("REPO_PASSWORD")
             }
         }
     }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
