@@ -23,14 +23,17 @@ subprojects {
     }
 }
 
-project(':PestoCore') {
-    sourceSets {
-        main {
-            java {
-                srcDirs = ['src/main/java']
-            }
-        }
-    }
+//sourceSets {
+//    main {
+//        java {
+//            srcDirs 'PestoCore/src/main/java'
+//        }
+//    }
+//}
+
+jar {
+//     Include the specific source files in the JAR
+    from 'PestoCore/src/main/java'
 }
 
 publishing {
