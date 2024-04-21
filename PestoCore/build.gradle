@@ -31,13 +31,18 @@ android {
 }
 
 dependencies {
-    compileOnly 'org.jetbrains:annotations:15.0'
-    compileOnly "androidx.annotation:annotation:1.7.0"
+    implementation 'org.jetbrains:annotations:24.1.0'
+    implementation "androidx.annotation:annotation:1.7.1"
 
-    compileOnly 'org.firstinspires.ftc:RobotCore:9.0.1'
-    compileOnly 'org.firstinspires.ftc:Hardware:9.0.1'
-    compileOnly 'org.firstinspires.ftc:FtcCommon:9.0.1'
-    compileOnly 'org.reflections:reflections:0.10.2'
+    implementation 'org.firstinspires.ftc:RobotCore:9.1.0'
+    implementation 'org.firstinspires.ftc:Hardware:9.1.0'
+    implementation 'org.firstinspires.ftc:FtcCommon:9.1.0'
+    implementation 'org.reflections:reflections:0.10.2'
 
     implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:main-SNAPSHOT'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 }
