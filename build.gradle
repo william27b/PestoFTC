@@ -23,62 +23,6 @@ subprojects {
     }
 }
 
-//sourceSets {
-//    main {
-//        java {
-//            srcDirs = ['PestoCore/src/main/java']
-//        }
-//        resources {
-//            srcDirs = ['PestoCore/src/main/resources'] // Adjust if you have resources
-//        }
-//    }
-//}
-
-//task debugConfigurations {
-//    doLast {
-//        println "Runtime classpath:"
-//        configurations.runtimeClasspath.files.each { println it }
-//
-//        println "\nCompile classpath:"
-//        configurations.compileClasspath.files.each { println it }
-//    }
-//}
-
-compileJava {
-    destinationDirectory = file('src/main/java')
-}
-
-jar {
-    from sourceSets.main.output
-    manifest {
-        attributes(
-                'Implementation-Title': 'PestoFTC',
-                'Implementation-Version': '1.0.0',
-        )
-    }
-//    from 'PestoCore/src/main/java'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-            groupId = 'com.shprobotics'
-            artifactId = 'pestoftc'
-            version = '1.0.0'
-        }
-    }
-    repositories {
-        maven {
-            url = uri("https://maven.pkg.github.com/william27b/PestoFTC")
-            credentials {
-                username = findProperty("REPO_USER") ?: System.getenv("REPO_USER")
-                password = findProperty("REPO_PASSWORD") ?: System.getenv("REPO_PASSWORD")
-            }
-        }
-    }
-}
-
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8

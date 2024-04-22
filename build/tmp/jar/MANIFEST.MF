@@ -1,4 +1,2 @@
 Manifest-Version: 1.0
-Implementation-Title: PestoFTC
-Implementation-Version: 1.0.0
 
