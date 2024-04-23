@@ -2,6 +2,8 @@ package com.shprobotics.pestocore.geometries;
 
 import androidx.annotation.NonNull;
 
+import org.apache.commons.math3.util.MathUtils;
+
 public class Pose2D {
     private double x, y, heading;
 
@@ -19,8 +21,22 @@ public class Pose2D {
         return y;
     }
 
-    public double getHeading() {
+    public double getHeadingRadians() {
         return heading;
+    }
+
+    public void setHeadingRadians(double heading, boolean clamp) {
+        if (clamp) {
+            this.heading = MathUtils.normalizeAngle(heading, 0.0);
+        } else{
+            this.heading = heading;
+        }
+    }
+
+    public void add(Pose2D pose2D, boolean clamp) {
+        this.x += pose2D.x;
+        this.y += pose2D.y;
+        this.setHeadingRadians(this.getHeadingRadians() + pose2D.heading, clamp);
     }
 
     public void rotate(double heading) {
@@ -32,6 +48,10 @@ public class Pose2D {
 
     public Pose2D copy() {
         return new Pose2D(x, y, heading);
+    }
+
+    public static Pose2D multiply(Pose2D pose2D, double v) {
+        return new Pose2D(pose2D.x * v, pose2D.y * v, pose2D.heading * v);
     }
 
     @NonNull

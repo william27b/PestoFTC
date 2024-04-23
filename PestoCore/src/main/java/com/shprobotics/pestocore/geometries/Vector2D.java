@@ -23,6 +23,16 @@ public class Vector2D {
         return Math.sqrt(x * x + y * y);
     }
 
+    public void add(Vector2D vector) {
+        this.x += vector.x;
+        this.y += vector.y;
+    }
+
+    public void scale(double scalar) {
+        this.x *= scalar;
+        this.y *= scalar;
+    }
+
     public Vector2D normalize() {
         double magnitude = getMagnitude();
         return new Vector2D(x / magnitude, y / magnitude);
