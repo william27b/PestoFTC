@@ -14,14 +14,18 @@ public class TeleOpController {
     private Function<Gamepad, Double> speedController;
     private IMU imu = null;
 
+    private double angleOffset;
+
     public TeleOpController(DriveController driveController, HardwareMap hardwareMap) {
         this.driveController = driveController;
         this.imu = (IMU) hardwareMap.get("imu");
+        this.angleOffset = 0;
     }
 
     public TeleOpController(DriveController driveController, IMU imu) {
         this.driveController = driveController;
         this.imu = imu;
+        this.angleOffset = 0;
     }
 
     public void setSpeedController(Function<Gamepad, Double> speedController) {
@@ -42,6 +46,14 @@ public class TeleOpController {
         this.configureIMU(new RevHubOrientationOnRobot(logoFacingDirection, usbFacingDirection));
     }
 
+    public double getHeading() {
+        return Math.toRadians(this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES) + this.angleOffset);
+    }
+
+    public void resetIMU() {
+        this.angleOffset = -this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+    }
+
     public void updateSpeed(Gamepad gamepad) {
         if (speedController != null) {
             this.driveController.setDriveSpeed(speedController.apply(gamepad));
@@ -59,7 +71,7 @@ public class TeleOpController {
             throw new AssertionError("IMU cannot be null when drivingFieldCentric() is called");
         }
 
-        double heading = Math.toRadians(this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES) + 90);
+        double heading = this.getHeading();
 
         double temp = forward * Math.cos(heading) + strafe * Math.sin(-heading);
         strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);

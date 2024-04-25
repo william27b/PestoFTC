@@ -6,7 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public interface DriveController {
     void configureMotorDirections(DcMotorSimple.Direction[] directions);
     void configureMotorDirections(DcMotorSimple.Direction frontLeftDirection, DcMotorSimple.Direction frontRightDirection, DcMotorSimple.Direction backLeftDirection, DcMotorSimple.Direction backRightDirection);
-    void setRunMode(DcMotor.RunMode runMode);
+    void setMode(DcMotor.RunMode runMode);
+    void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior zeroPowerBehavior);
     double getDriveSpeed();
     void setDriveSpeed(double speed);
     void drive(double forward, double strafe, double rotate);

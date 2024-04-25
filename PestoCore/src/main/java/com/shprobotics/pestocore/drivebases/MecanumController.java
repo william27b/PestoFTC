@@ -27,15 +27,7 @@ public class MecanumController implements DriveController {
     }
 
     public MecanumController(HardwareMap hardwareMap) {
-        this(hardwareMap, new String[]{"front_left", "front_right", "back_left", "back_right"});
-    }
-
-    public void setPowerVectors(Vector2D[] powerVectors) {
-        this.powerVectors = powerVectors;
-    }
-
-    public void setPowerVectors(Vector2D frontLeftVector, Vector2D frontRightVector, Vector2D backLeftVector, Vector2D backRightVector) {
-        this.powerVectors = new Vector2D[]{frontLeftVector, frontRightVector, backLeftVector, backRightVector};
+        this(hardwareMap, new String[]{"frontLeft", "frontRight", "backLeft", "backRight"});
     }
 
     @Override
@@ -55,11 +47,27 @@ public class MecanumController implements DriveController {
     }
 
     @Override
-    public void setRunMode(DcMotor.RunMode runMode) {
+    public void setMode(DcMotor.RunMode runMode) {
         frontLeft.setMode(runMode);
         frontRight.setMode(runMode);
         backLeft.setMode(runMode);
         backRight.setMode(runMode);
+    }
+
+    @Override
+    public void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior zeroPowerBehavior) {
+        frontLeft.setZeroPowerBehavior(zeroPowerBehavior);
+        frontRight.setZeroPowerBehavior(zeroPowerBehavior);
+        backLeft.setZeroPowerBehavior(zeroPowerBehavior);
+        backRight.setZeroPowerBehavior(zeroPowerBehavior);
+    }
+
+    public void setPowerVectors(Vector2D[] powerVectors) {
+        this.powerVectors = powerVectors;
+    }
+
+    public void setPowerVectors(Vector2D frontLeftVector, Vector2D frontRightVector, Vector2D backLeftVector, Vector2D backRightVector) {
+        this.powerVectors = new Vector2D[]{frontLeftVector, frontRightVector, backLeftVector, backRightVector};
     }
 
     @Override
@@ -80,9 +88,9 @@ public class MecanumController implements DriveController {
     @Override
     public void drive(double forward, double strafe, double rotate) {
         double frontLeftPower = (powerVectors[0].getY() * forward) + (powerVectors[0].getX() * strafe) + rotate;
-        double frontRightPower = (powerVectors[1].getY() * forward) + (powerVectors[1].getX() * strafe) + rotate;
+        double frontRightPower = (powerVectors[1].getY() * forward) + (powerVectors[1].getX() * strafe) - rotate;
         double backLeftPower = (powerVectors[2].getY() * forward) + (powerVectors[2].getX() * strafe) + rotate;
-        double backRightPower = (powerVectors[3].getY() * forward) + (powerVectors[3].getX() * strafe) + rotate;
+        double backRightPower = (powerVectors[3].getY() * forward) + (powerVectors[3].getX() * strafe) - rotate;
 
         double max = Math.max(1, Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
 

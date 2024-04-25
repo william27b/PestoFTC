@@ -17,7 +17,7 @@ public class Tracker {
     private Pose2D robotVelocity;
     private Pose2D currentPosition;
 
-    private ElapsedTime elapsedTime;
+    private final ElapsedTime elapsedTime;
     private double lastTime;
 
     public Tracker(TrackerBuilder trackerBuilder) {
@@ -28,6 +28,7 @@ public class Tracker {
         this.rightOdometry = trackerBuilder.rightOdometry;
         this.centerOdometry = trackerBuilder.centerOdometry;
 
+        this.robotVelocity = trackerBuilder.robotVelocity;
         this.currentPosition = trackerBuilder.currentPosition;
 
         this.elapsedTime = trackerBuilder.elapsedTime;
@@ -35,43 +36,11 @@ public class Tracker {
     }
 
     public void reset() {
-        this.currentPosition = new Pose2D(0, 0, Math.PI/2);
+        this.currentPosition = new Pose2D(0, 0, 0);
     }
 
     public void resetTime() {
         this.lastTime = elapsedTime.seconds();
-    }
-
-    public void rotationTestingUpdateOdometry() {
-        double lT = leftOdometry.getInchesTravelled();
-        double cT = centerOdometry.getInchesTravelled();
-        double rT = rightOdometry.getInchesTravelled();
-
-        double distanceRotated = (lT - rT) / 2;
-        double x = cT + (distanceRotated * FORWARD_OFFSET);
-        double y = (lT + rT) / 2;
-        double r = - (4 * distanceRotated) / ODOMETRY_WIDTH;
-
-        double deltaTime = elapsedTime.seconds() - lastTime;
-        lastTime = elapsedTime.seconds();
-        this.robotVelocity = Pose2D.multiply(new Pose2D(x, y, r), 1/deltaTime);
-
-        // TODO: check if r/2 helps or hinders
-        // Should make all movement oriented between last and current position
-        // because all movement occurred between last and current moment
-        double headingRadians = getCurrentPosition().getHeadingRadians() + r/2;
-
-        // TODO: replace with Position2D.rotate for simplicity
-
-        // TODO: CHECK MATH
-        double xOriented = (Math.sin(headingRadians) * x) + (Math.cos(headingRadians) * y);
-        double yOriented = (Math.sin(headingRadians) * y) - (Math.cos(headingRadians) * x);
-
-        currentPosition.add(new Pose2D(
-                xOriented,
-                yOriented,
-                r
-        ), false);
     }
 
     public void updateOdometry() {
@@ -88,16 +57,10 @@ public class Tracker {
         lastTime = elapsedTime.seconds();
         this.robotVelocity = Pose2D.multiply(new Pose2D(x, y, r), 1/deltaTime);
 
-        // TODO: check if r/2 helps or hinders
-        // Should make all movement oriented between last and current position
-        // because all movement occurred between last and current moment
-        double headingRadians = getCurrentPosition().getHeadingRadians() + r/2;
+        double headingRadians = getCurrentPosition().getHeadingRadians();
 
-        // TODO: replace with Position2D.rotate for simplicity
-
-        // TODO: CHECK MATH
-        double xOriented = (Math.sin(headingRadians) * x) + (Math.cos(headingRadians) * y);
-        double yOriented = (Math.sin(headingRadians) * y) - (Math.cos(headingRadians) * x);
+        double xOriented = (Math.cos(headingRadians) * x) - (Math.sin(headingRadians) * y);
+        double yOriented = (Math.cos(headingRadians) * y) + (Math.sin(headingRadians) * x);
 
         currentPosition.add(new Pose2D(
                 xOriented,
@@ -115,8 +78,6 @@ public class Tracker {
         return robotVelocity;
     }
 
-
-
     public static class TrackerBuilder {
         private final double FORWARD_OFFSET;
         private final double ODOMETRY_WIDTH;
@@ -125,9 +86,10 @@ public class Tracker {
         private final Odometry centerOdometry;
         private final Odometry rightOdometry;
 
-        private Pose2D currentPosition;
-        private ElapsedTime elapsedTime;
-        private double lastTime;
+        private final Pose2D currentPosition;
+        private final Pose2D robotVelocity;
+        private final ElapsedTime elapsedTime;
+        private final double lastTime;
 
         public TrackerBuilder(
                 HardwareMap hardwareMap,
@@ -167,7 +129,8 @@ public class Tracker {
             this.rightOdometry.reset();
             this.centerOdometry.reset();
 
-            this.currentPosition = new Pose2D(0, 0, Math.PI/2);
+            this.currentPosition = new Pose2D(0, 0, 0);
+            this.robotVelocity = new Pose2D(0, 0, 0);
 
             this.elapsedTime = new ElapsedTime();
             this.lastTime = elapsedTime.seconds();

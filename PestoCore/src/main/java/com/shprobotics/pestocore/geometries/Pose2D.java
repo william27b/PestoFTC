@@ -46,6 +46,10 @@ public class Pose2D {
         this.heading += heading;
     }
 
+    public Vector2D asVector() {
+        return new Vector2D(x, y);
+    }
+
     public Pose2D copy() {
         return new Pose2D(x, y, heading);
     }
