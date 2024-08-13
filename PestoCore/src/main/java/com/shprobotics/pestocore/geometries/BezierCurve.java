@@ -19,7 +19,14 @@ public class BezierCurve {
         return this.t;
     }
 
-    public Vector2D getPoint() {
+    public Vector2D getPoint(double t) {
+        if (t == 0) {
+            return controlPoints[0];
+        }
+        if (t == 1) {
+            return controlPoints[n-1];
+        }
+
         Vector2D point = new Vector2D(0, 0);
 
         double n_factorial = 1;
@@ -40,5 +47,9 @@ public class BezierCurve {
         }
 
         return point;
+    }
+
+    public Vector2D getPoint() {
+        return this.getPoint(this.t);
     }
 }

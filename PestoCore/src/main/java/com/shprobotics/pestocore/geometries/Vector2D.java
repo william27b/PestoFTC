@@ -3,6 +3,9 @@ package com.shprobotics.pestocore.geometries;
 import androidx.annotation.NonNull;
 
 public class Vector2D {
+    public static final Vector2D ZERO = new Vector2D(0, 0);
+    public static final Vector2D ONE = new Vector2D(1, 1);
+
     private double x;
     private double y;
 
@@ -45,6 +48,14 @@ public class Vector2D {
         this.y *= scalar;
     }
 
+    public static Vector2D square(Vector2D vector2D) {
+        return new Vector2D(vector2D.getX() * vector2D.getX(), vector2D.getY() * vector2D.getY());
+    }
+
+    public static Vector2D perpendicular(Vector2D asVector) {
+        return new Vector2D(-asVector.getY(), asVector.getX());
+    }
+
     public static double fastdist(Vector2D one, Vector2D two) {
         return (one.getX() - two.getX()) * (one.getX() - two.getX()) + (one.getY() - two.getY()) * (one.getY() - two.getY());
     }
@@ -66,6 +77,10 @@ public class Vector2D {
 
     public Vector2D copy() {
         return new Vector2D(x, y);
+    }
+
+    public static boolean equals(Vector2D one, Vector2D two) {
+        return one.getX() == two.getX() && one.getY() == two.getY();
     }
 
     @NonNull

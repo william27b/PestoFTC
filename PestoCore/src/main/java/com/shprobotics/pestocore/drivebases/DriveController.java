@@ -10,5 +10,6 @@ public interface DriveController {
     void setZeroPowerBehavior(DcMotor.ZeroPowerBehavior zeroPowerBehavior);
     double getDriveSpeed();
     void setDriveSpeed(double speed);
+    void overdrive(double forward, double strafe, double rotate);
     void drive(double forward, double strafe, double rotate);
 }

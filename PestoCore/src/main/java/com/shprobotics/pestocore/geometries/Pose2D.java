@@ -46,6 +46,14 @@ public class Pose2D {
         this.heading += heading;
     }
 
+    public static Vector2D square(Pose2D robotVelocity) {
+        return new Vector2D(robotVelocity.x * robotVelocity.x, robotVelocity.y * robotVelocity.y);
+    }
+
+    public double getMagnitude() {
+        return Math.sqrt(x * x + y * y);
+    }
+
     public Vector2D asVector() {
         return new Vector2D(x, y);
     }

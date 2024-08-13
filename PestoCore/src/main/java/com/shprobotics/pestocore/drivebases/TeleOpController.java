@@ -4,6 +4,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.shprobotics.pestocore.geometries.Vector2D;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -14,7 +15,13 @@ public class TeleOpController {
     private Function<Gamepad, Double> speedController;
     private IMU imu = null;
 
+    private boolean useIMU;
+    private Tracker imuTracker;
     private double angleOffset;
+
+    private boolean counteractCentripetalForce = false;
+    private Tracker tracker;
+    private double MAX_VELOCITY;
 
     public TeleOpController(DriveController driveController, HardwareMap hardwareMap) {
         this.driveController = driveController;
@@ -26,6 +33,16 @@ public class TeleOpController {
         this.driveController = driveController;
         this.imu = imu;
         this.angleOffset = 0;
+    }
+
+    public void counteractCentripetalForce(Tracker tracker, double MAX_VELOCITY) {
+        this.counteractCentripetalForce = true;
+        this.tracker = tracker;
+        this.MAX_VELOCITY = MAX_VELOCITY;
+    }
+
+    public void deactivateCentripetalForce() {
+        this.counteractCentripetalForce = false;
     }
 
     public void setSpeedController(Function<Gamepad, Double> speedController) {
@@ -46,8 +63,21 @@ public class TeleOpController {
         this.configureIMU(new RevHubOrientationOnRobot(logoFacingDirection, usbFacingDirection));
     }
 
+    public void useTrackerIMU(Tracker tracker) {
+        this.useIMU = false;
+        this.imuTracker = tracker;
+    }
+
+    public void useIMU() {
+        this.useIMU = true;
+    }
+
     public double getHeading() {
-        return Math.toRadians(this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES) + this.angleOffset);
+        if (useIMU) {
+            return Math.toRadians(this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES) + this.angleOffset);
+        } else {
+            return this.imuTracker.getCurrentHeading();
+        }
     }
 
     public void resetIMU() {
@@ -61,6 +91,14 @@ public class TeleOpController {
     }
 
     public void driveRobotCentric(double forward, double strafe, double rotate) {
+        if (counteractCentripetalForce) {
+            Vector2D centripetalForce = tracker.getCentripetalForce();
+            centripetalForce.scale(1 / MAX_VELOCITY);
+
+            forward += centripetalForce.getY();
+            strafe += centripetalForce.getX();
+        }
+
         driveController.drive(forward, strafe, rotate);
     }
 
@@ -77,6 +115,6 @@ public class TeleOpController {
         strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
         forward = temp;
 
-        driveController.drive(forward, strafe, rotate);
+        this.driveRobotCentric(forward, strafe, rotate);
     }
 }

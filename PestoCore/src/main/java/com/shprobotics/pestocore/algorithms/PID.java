@@ -1,65 +1,93 @@
 package com.shprobotics.pestocore.algorithms;
 
-import java.util.function.DoubleSupplier;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class PID {
     private final double kP;
     private final double kI;
     private final double kD;
 
-    private double a;
+    private double lowPassFilter;
     private double previous;
 
     private double integralSum;
-    private double reference;
+    private double maxIntegralProportionRatio;
 
     private double lastError;
 
     private double deltaTime;
     private double lastTime;
-    private final DoubleSupplier timer;
+    private final ElapsedTime elapsedTime;
 
-    public PID(double kP, double kI, double kD, DoubleSupplier timer) {
+    public PID(double kP, double kI, double kD) {
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
 
-        this.a = 0;
+        this.lowPassFilter = 0;
+        this.previous = 0;
 
         this.integralSum = 0;
-        this.reference = 0;
+        this.maxIntegralProportionRatio = Double.POSITIVE_INFINITY;
 
         this.lastError = 0;
 
         this.deltaTime = 0;
-        this.lastTime = timer.getAsDouble();
-        this.timer = timer;
+        this.lastTime = 0;
+        this.elapsedTime = new ElapsedTime();
+        this.elapsedTime.reset();
     }
 
-    public void setLowPassFilter(double a) {
-        this.a = a;
+    public void reset() {
+        this.previous = 0;
+
+        this.integralSum = 0;
+
+        this.lastError = 0;
+        this.lastTime = elapsedTime.seconds();
+    }
+
+    public void setLowPassFilter(double lowPassFilter) {
+        this.lowPassFilter = lowPassFilter;
+    }
+
+    public void setMaxIntegralProportionRatio(double maxIntegralProportionRatio) {
+        this.maxIntegralProportionRatio = maxIntegralProportionRatio;
     }
 
     public double getOutput(double current, double target) {
-        double tmp = a * current + (1 - a) * previous;
+        // Apply low pass filter, save previous measured value
+        double tmp = lowPassFilter * current + (1 - lowPassFilter) * previous;
         previous = current;
         current = tmp;
 
-        if (target != reference) {
-            this.integralSum = 0;
-        }
-        this.reference = target;
-
-        double currentTime = timer.getAsDouble();
+        double currentTime = elapsedTime.seconds();
         this.deltaTime = currentTime - lastTime;
-
         double error = target - current;
+
+        // proportion
+        double proportion = kP * error;
+
         integralSum += error * deltaTime;
 
-        double derivative = (error - lastError) / deltaTime;
+        // integral clamping
+        if (Math.abs(proportion) > maxIntegralProportionRatio) {
+            if (proportion > 0) {
+                integralSum = Math.min(integralSum, maxIntegralProportionRatio - proportion);
+            } else {
+                integralSum = Math.max(integralSum, -maxIntegralProportionRatio - proportion);
+            }
+        }
+
+        // integral
+        double integral = kI * integralSum;
+
+        // derivative
+        double derivative = kD * (error - lastError) / deltaTime;
+
         this.lastError = error;
         this.lastTime = currentTime;
 
-        return kP * error + kI * integralSum + kD * derivative;
+        return proportion + integral + derivative;
     }
 }

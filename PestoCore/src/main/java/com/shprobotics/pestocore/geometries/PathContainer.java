@@ -23,18 +23,34 @@ public class PathContainer {
         this.increment = pathContainerBuilder.increment;
     }
 
+    public void reset() {
+        this.i = 0;
+        for (BezierCurve curve: curves) {
+            curve.reset();
+        }
+    }
+
+    public Vector2D getEndpoint() {
+        return curves.get(n-1).getPoint(1.0);
+    }
+
     public Vector2D getNextPosition(Vector2D robotPosition) {
         BezierCurve current = curves.get(i);
         if (current.getT() == 1) {
             if (this.actions.get(i) != null) {
                 this.actions.get(i).run();
             }
-            this.i += 1;
+            this.i = Math.min(n-1, i+1);
             current = curves.get(i);
         }
 
         Vector2D currentPosition = current.getPoint();
         current.increment(increment);
+
+        if (Vector2D.equals(currentPosition, robotPosition)) {
+            current.increment(increment);
+        }
+
         Vector2D nextPosition = current.getPoint();
 
         while (Vector2D.fastdist(nextPosition, robotPosition) < Vector2D.fastdist(currentPosition, robotPosition)) {
@@ -42,8 +58,6 @@ public class PathContainer {
             current.increment(increment);
             nextPosition = current.getPoint();
         }
-
-        current.increment(-increment);
 
         this.heading = headings.get(i) != null ? headings.get(i).getHeading(current.getT()) : this.heading;
 

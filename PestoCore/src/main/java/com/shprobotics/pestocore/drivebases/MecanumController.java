@@ -86,6 +86,21 @@ public class MecanumController implements DriveController {
     }
 
     @Override
+    public void overdrive(double forward, double strafe, double rotate) {
+        double frontLeftPower = (powerVectors[0].getY() * forward) + (powerVectors[0].getX() * strafe) + rotate;
+        double frontRightPower = (powerVectors[1].getY() * forward) + (powerVectors[1].getX() * strafe) - rotate;
+        double backLeftPower = (powerVectors[2].getY() * forward) + (powerVectors[2].getX() * strafe) + rotate;
+        double backRightPower = (powerVectors[3].getY() * forward) + (powerVectors[3].getX() * strafe) - rotate;
+
+        double max = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)));
+
+        frontLeft.setPower(frontLeftPower * this.driveSpeed / max);
+        frontRight.setPower(frontRightPower * this.driveSpeed / max);
+        backLeft.setPower(backLeftPower * this.driveSpeed / max);
+        backRight.setPower(backRightPower * this.driveSpeed / max);
+    }
+
+    @Override
     public void drive(double forward, double strafe, double rotate) {
         double frontLeftPower = (powerVectors[0].getY() * forward) + (powerVectors[0].getX() * strafe) + rotate;
         double frontRightPower = (powerVectors[1].getY() * forward) + (powerVectors[1].getX() * strafe) - rotate;
