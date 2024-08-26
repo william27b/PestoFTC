@@ -40,8 +40,11 @@ dependencies {
     implementation 'org.firstinspires.ftc:Hardware:9.1.0'
     implementation 'org.firstinspires.ftc:FtcCommon:9.1.0'
     implementation 'org.reflections:reflections:0.10.2'
+    implementation 'org.firstinspires.ftc:Vision:9.0.1'
 
     implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:main-SNAPSHOT'
+
+    implementation 'org.ejml:ejml-all:0.43'
 }
 
 java {
