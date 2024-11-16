@@ -13,9 +13,9 @@ import java.util.function.Function;
 public class TeleOpController {
     private final DriveController driveController;
     private Function<Gamepad, Double> speedController;
-    private IMU imu = null;
+    private IMU imu;
 
-    private boolean useIMU;
+    private boolean useIMU = true;
     private Tracker imuTracker;
     private double angleOffset;
 

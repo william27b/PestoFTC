@@ -72,7 +72,6 @@ public class PathContainer {
         private ArrayList<BezierCurve> curves;
         private ArrayList<ParametricHeading> headings;
         private ArrayList<Runnable> actions;
-        private int i;
 
         private double increment;
 

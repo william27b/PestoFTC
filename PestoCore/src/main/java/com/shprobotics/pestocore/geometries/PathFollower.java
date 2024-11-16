@@ -13,8 +13,6 @@ public class PathFollower {
     private final PID headingPID;
     private final PID endpointPID;
 
-    private boolean decelerate;
-
     public PathFollower(PathFollowerBuilder pathFollowerBuilder) {
         this.driveController = pathFollowerBuilder.driveController;
         this.tracker = pathFollowerBuilder.tracker;
@@ -23,8 +21,10 @@ public class PathFollower {
         this.deceleration = pathFollowerBuilder.deceleration;
         this.headingPID = pathFollowerBuilder.headingPID;
         this.endpointPID = pathFollowerBuilder.endpointPID;
+    }
 
-        this.decelerate = false;
+    public boolean isFinished(double toleranceXY) {
+        return Vector2D.dist(tracker.getCurrentPosition(), this.pathContainer.getEndpoint()) < toleranceXY;
     }
 
     public void reset() {
@@ -75,22 +75,41 @@ public class PathFollower {
         private final DriveController driveController;
         private final Tracker tracker;
         private final PathContainer pathContainer;
-        private final double deceleration;
-        private final PID headingPID;
-        private final PID endpointPID;
+        private double deceleration;
+        private PID headingPID;
+        private PID endpointPID;
 
-        public PathFollowerBuilder(DriveController driveController, Tracker tracker, PathContainer pathContainer, double speed, double deceleration, PID headingPID, PID endpointPID) {
+        public PathFollowerBuilder(DriveController driveController, Tracker tracker, PathContainer pathContainer) {
             this.driveController = driveController;
             this.tracker = tracker;
             this.pathContainer = pathContainer;
-            this.deceleration = deceleration;
-            this.driveController.setDriveSpeed(speed);
-            this.headingPID = headingPID;
-            this.endpointPID = endpointPID;
+            this.deceleration = 1;
+            this.headingPID = new PID(0,0,0);
+            this.endpointPID = new PID(0,0,0);
 
             if (deceleration == 0) {
                 throw new IllegalArgumentException("Deceleration cannot be 0");
             }
+        }
+
+        public PathFollowerBuilder setDeceleration(double deceleration) {
+            this.deceleration = deceleration;
+            return this;
+        }
+
+        public PathFollowerBuilder setHeadingPID(PID headingPID) {
+            this.headingPID = headingPID;
+            return this;
+        }
+
+        public PathFollowerBuilder setEndpointPID(PID endpointPID) {
+            this.endpointPID = endpointPID;
+            return this;
+        }
+
+        public PathFollowerBuilder setSpeed(double speed) {
+            this.driveController.setDriveSpeed(speed);
+            return this;
         }
 
         public PathFollower build() {
