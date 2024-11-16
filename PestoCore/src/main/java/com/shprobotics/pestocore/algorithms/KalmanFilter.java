@@ -1,3 +1,5 @@
+package com.shprobotics.pestocore.algorithms;
+
 /*
  * Copyright (c) 2022, Peter Abeles. All Rights Reserved.
  *
@@ -16,62 +18,50 @@
  * limitations under the License.
  */
 
-package com.shprobotics.pestocore.algorithms;
-
-import static org.ejml.dense.row.CommonOps_DDRM.addEquals;
-import static org.ejml.dense.row.CommonOps_DDRM.mult;
-import static org.ejml.dense.row.CommonOps_DDRM.multTransA;
-import static org.ejml.dense.row.CommonOps_DDRM.multTransB;
-import static org.ejml.dense.row.CommonOps_DDRM.subtract;
-import static org.ejml.dense.row.CommonOps_DDRM.subtractEquals;
-
 import org.ejml.data.DMatrixRMaj;
-import org.ejml.dense.row.factory.LinearSolverFactory_DDRM;
-import org.ejml.interfaces.linsol.LinearSolverDense;
+import org.ejml.equation.Equation;
+import org.ejml.equation.Sequence;
 
 /**
- * A Kalman filter that is implemented using the operations API, which is procedural. Much of the excessive
- * memory creation/destruction has been reduced from the KalmanFilterSimple. A specialized solver is
- * under to invert the SPD matrix.
+ * Example of how the equation interface can greatly simplify code
  *
  * @author Peter Abeles
  */
 public class KalmanFilter implements KalmanFilterInterface {
-    // kinematics description
-    private DMatrixRMaj F, Q, H;
-
     // system state estimate
     private DMatrixRMaj x, P;
 
-    // these are predeclared for efficiency reasons
-    private DMatrixRMaj a, b;
-    private DMatrixRMaj y, S, S_inv, c, d;
-    private DMatrixRMaj K;
+    private Equation eq;
 
-    private LinearSolverDense<DMatrixRMaj> solver;
+    // Storage for precompiled code for predict and update
+    Sequence predictX, predictP;
+    Sequence updateY, updateK, updateX, updateP;
 
     @Override public void configure( DMatrixRMaj F, DMatrixRMaj Q, DMatrixRMaj H ) {
-        this.F = F;
-        this.Q = Q;
-        this.H = H;
-
         int dimenX = F.numCols;
-        int dimenZ = H.numRows;
-
-        a = new DMatrixRMaj(dimenX, 1);
-        b = new DMatrixRMaj(dimenX, dimenX);
-        y = new DMatrixRMaj(dimenZ, 1);
-        S = new DMatrixRMaj(dimenZ, dimenZ);
-        S_inv = new DMatrixRMaj(dimenZ, dimenZ);
-        c = new DMatrixRMaj(dimenZ, dimenX);
-        d = new DMatrixRMaj(dimenX, dimenZ);
-        K = new DMatrixRMaj(dimenX, dimenZ);
 
         x = new DMatrixRMaj(dimenX, 1);
         P = new DMatrixRMaj(dimenX, dimenX);
 
-        // covariance matrices are symmetric positive semi-definite
-        solver = LinearSolverFactory_DDRM.symmPosDef(dimenX);
+        eq = new Equation();
+
+        // Provide aliases between the symbolic variables and matrices we normally interact with
+        // The names do not have to be the same.
+        eq.alias(x, "x", P, "P", Q, "Q", F, "F", H, "H");
+
+        // Dummy matrix place holder to avoid compiler errors. Will be replaced later on
+        eq.alias(new DMatrixRMaj(1, 1), "z");
+        eq.alias(new DMatrixRMaj(1, 1), "R");
+
+        // Pre-compile so that it doesn't have to compile it each time it's invoked. More cumbersome
+        // but for small matrices the overhead is significant
+        predictX = eq.compile("x = F*x");
+        predictP = eq.compile("P = F*P*F' + Q");
+
+        updateY = eq.compile("y = z - H*x");
+        updateK = eq.compile("K = P*H'*inv( H*P*H' + R )");
+        updateX = eq.compile("x = x + K*y");
+        updateP = eq.compile("P = P-K*(H*P)");
     }
 
     @Override public void setState( DMatrixRMaj x, DMatrixRMaj P ) {
@@ -80,40 +70,19 @@ public class KalmanFilter implements KalmanFilterInterface {
     }
 
     @Override public void predict() {
-        // x = F x
-        mult(F, x, a);
-        x.setTo(a);
-
-        // P = F P F' + Q
-        mult(F, P, b);
-        multTransB(b, F, P);
-        addEquals(P, Q);
+        predictX.perform();
+        predictP.perform();
     }
 
     @Override public void update( DMatrixRMaj z, DMatrixRMaj R ) {
-        // y = z - H x
-        mult(H, x, y);
-        subtract(z, y, y);
 
-        // S = H P H' + R
-        mult(H, P, c);
-        multTransB(c, H, S);
-        addEquals(S, R);
+        // Alias will overwrite the reference to the previous matrices with the same name
+        eq.alias(z, "z", R, "R");
 
-        // K = PH'S^(-1)
-        if (!solver.setA(S)) throw new RuntimeException("Invert failed");
-        solver.invert(S_inv);
-        multTransA(H, S_inv, d);
-        mult(P, d, K);
-
-        // x = x + Ky
-        mult(K, y, a);
-        addEquals(x, a);
-
-        // P = (I-kH)P = P - (KH)P = P-K(HP)
-        mult(H, P, c);
-        mult(K, c, b);
-        subtractEquals(P, b);
+        updateY.perform();
+        updateK.perform();
+        updateX.perform();
+        updateP.perform();
     }
 
     @Override public DMatrixRMaj getState() { return x; }
