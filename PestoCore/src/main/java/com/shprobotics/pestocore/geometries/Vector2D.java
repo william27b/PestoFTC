@@ -48,6 +48,10 @@ public class Vector2D {
         this.y *= scalar;
     }
 
+    public static Vector2D multiply(Vector2D vector2D1, Vector2D vector2D2) {
+        return new Vector2D(vector2D1.getX() * vector2D2.getX(), vector2D1.getY() * vector2D2.getY());
+    }
+
     public static Vector2D square(Vector2D vector2D) {
         return new Vector2D(vector2D.getX() * vector2D.getX(), vector2D.getY() * vector2D.getY());
     }
