@@ -25,18 +25,48 @@ public class Pose2D {
         return heading;
     }
 
-    public void setHeadingRadians(double heading, boolean clamp) {
-        if (clamp) {
+    public void setHeadingRadians(double heading, boolean normalizeHeading) {
+        if (normalizeHeading) {
             this.heading = MathUtils.normalizeAngle(heading, 0.0);
         } else{
             this.heading = heading;
         }
     }
 
-    public void add(Pose2D pose2D, boolean clamp) {
+    public static Pose2D add(Pose2D pose1, Pose2D pose2, boolean normalizeHeading) {
+        double heading = pose1.getHeadingRadians() + pose2.getHeadingRadians();
+        if (normalizeHeading)
+            heading = MathUtils.normalizeAngle(heading, 0.0);
+
+        return new Pose2D(
+                pose1.getX() + pose2.getX(),
+                pose1.getY() + pose2.getY(),
+                heading
+        );
+    }
+
+    public void add(Pose2D pose2D, boolean normalizeHeading) {
         this.x += pose2D.x;
         this.y += pose2D.y;
-        this.setHeadingRadians(this.getHeadingRadians() + pose2D.heading, clamp);
+        this.setHeadingRadians(this.getHeadingRadians() + pose2D.heading, normalizeHeading);
+    }
+
+    public static Pose2D subtract(Pose2D pose1, Pose2D pose2, boolean normalizeHeading) {
+        double heading = pose1.getHeadingRadians() - pose2.getHeadingRadians();
+        if (normalizeHeading)
+            heading = MathUtils.normalizeAngle(heading, 0.0);
+
+        return new Pose2D(
+                pose1.getX() - pose2.getX(),
+                pose1.getY() - pose2.getY(),
+                heading
+        );
+    }
+
+    public void subtract(Pose2D pose2D, boolean normalizeHeading) {
+        this.x -= pose2D.x;
+        this.y -= pose2D.y;
+        this.setHeadingRadians(this.getHeadingRadians() - pose2D.heading, normalizeHeading);
     }
 
     public void rotate(double heading) {

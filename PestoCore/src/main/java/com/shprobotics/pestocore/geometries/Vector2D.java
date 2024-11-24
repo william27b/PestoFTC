@@ -39,6 +39,11 @@ public class Vector2D {
         this.y += vector.y;
     }
 
+    public void subtract(Vector2D vector) {
+        this.x -= vector.x;
+        this.y -= vector.y;
+    }
+
     public static Vector2D scale(Vector2D vector2D, double scalar) {
         return new Vector2D(vector2D.getX() * scalar, vector2D.getY() * scalar);
     }
@@ -54,6 +59,11 @@ public class Vector2D {
 
     public static Vector2D square(Vector2D vector2D) {
         return new Vector2D(vector2D.getX() * vector2D.getX(), vector2D.getY() * vector2D.getY());
+    }
+
+    public void square() {
+        this.x = this.x * this.x;
+        this.y = this.y * this.y;
     }
 
     public static Vector2D perpendicular(Vector2D asVector) {
