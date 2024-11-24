@@ -1,12 +1,12 @@
 package com.shprobotics.pestocore.geometries;
 
 import com.shprobotics.pestocore.algorithms.PID;
+import com.shprobotics.pestocore.drivebases.DeterministicTracker;
 import com.shprobotics.pestocore.drivebases.DriveController;
-import com.shprobotics.pestocore.drivebases.Tracker;
 
 public class PathFollower {
     private final DriveController driveController;
-    private final Tracker tracker;
+    private final DeterministicTracker tracker;
     private final PathContainer pathContainer;
     private final Vector2D endpoint;
     private final double deceleration;
@@ -24,7 +24,7 @@ public class PathFollower {
     }
 
     public boolean isFinished(double toleranceXY) {
-        return Vector2D.dist(tracker.getCurrentPosition(), this.pathContainer.getEndpoint()) < toleranceXY;
+        return Vector2D.dist(tracker.getCurrentPosition().asVector(), this.pathContainer.getEndpoint()) < toleranceXY;
     }
 
     public void reset() {
@@ -34,12 +34,12 @@ public class PathFollower {
     }
 
     private Vector2D predictBrakeStop(Vector2D velocity) {
-        return Vector2D.scale(Vector2D.square(velocity), -1 / (2 * deceleration));
+        return Vector2D.scale(velocity, 1 / (2 * deceleration));
     }
 
     public void update() {
-        Vector2D robotPosition = tracker.getCurrentPosition();
-        double heading = tracker.getCurrentHeading();
+        Vector2D robotPosition = tracker.getCurrentPosition().asVector();
+        double heading = tracker.getCurrentPosition().getHeadingRadians();
         double rotate = -headingPID.getOutput(heading, pathContainer.getHeading());
 //        double rotate = 0;
 
@@ -73,13 +73,13 @@ public class PathFollower {
 
     public static class PathFollowerBuilder {
         private final DriveController driveController;
-        private final Tracker tracker;
+        private final DeterministicTracker tracker;
         private final PathContainer pathContainer;
         private double deceleration;
         private PID headingPID;
         private PID endpointPID;
 
-        public PathFollowerBuilder(DriveController driveController, Tracker tracker, PathContainer pathContainer) {
+        public PathFollowerBuilder(DriveController driveController, DeterministicTracker tracker, PathContainer pathContainer) {
             this.driveController = driveController;
             this.tracker = tracker;
             this.pathContainer = pathContainer;

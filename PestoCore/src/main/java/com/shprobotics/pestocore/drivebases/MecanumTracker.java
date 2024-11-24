@@ -8,9 +8,7 @@ import com.shprobotics.pestocore.geometries.Circle;
 import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.geometries.Vector2D;
 
-import org.apache.commons.math3.util.MathUtils;
-
-public class MecanumTracker implements Tracker {
+public class MecanumTracker implements DeterministicTracker {
     private final double CIRCUMFERENCE;
 
     public final Odometry frontLeft;
@@ -19,10 +17,9 @@ public class MecanumTracker implements Tracker {
     public final Odometry backRight;
 
     private Pose2D robotVelocity;
-    private Vector2D positionMinus2;
-    private Vector2D positionMinus1;
-    private Vector2D currentPosition;
-    private double currentHeading;
+    private Pose2D positionMinus2;
+    private Pose2D positionMinus1;
+    private Pose2D currentPosition;
 
     private final ElapsedTime elapsedTime;
     private double lastTime;
@@ -40,7 +37,6 @@ public class MecanumTracker implements Tracker {
         this.positionMinus2 = trackerBuilder.positionMinus2;
         this.positionMinus1 = trackerBuilder.positionMinus1;
         this.currentPosition = trackerBuilder.currentPosition;
-        this.currentHeading = trackerBuilder.currentHeading;
 
         this.elapsedTime = trackerBuilder.elapsedTime;
         this.lastTime = trackerBuilder.lastTime;
@@ -48,17 +44,16 @@ public class MecanumTracker implements Tracker {
 
     public void reset() {
         this.robotVelocity = new Pose2D(0, 0, 0);
-        this.positionMinus2 = new Vector2D(0, 0);
-        this.positionMinus1 = new Vector2D(0, 0);
-        this.currentPosition = new Vector2D(0, 0);
-        this.currentHeading = 0;
+        this.positionMinus2 = new Pose2D(0, 0, 0);
+        this.positionMinus1 = new Pose2D(0, 0, 0);
+        this.currentPosition = new Pose2D(0, 0, 0);
     }
 
     public void resetTime() {
         this.lastTime = this.elapsedTime.seconds();
     }
 
-    public void updateOdometry() {
+    public void update() {
         double frontLeftDelta = this.frontLeft.getInchesTravelled();
         double frontRightDelta = this.frontRight.getInchesTravelled();
         double backLeftDelta = this.backLeft.getInchesTravelled();
@@ -73,27 +68,28 @@ public class MecanumTracker implements Tracker {
         this.lastTime = this.elapsedTime.seconds();
         this.robotVelocity = Pose2D.multiply(new Pose2D(x, y, r), 1/deltaTime);
 
-        double headingRadians = this.currentHeading;
+        double headingRadians = this.currentPosition.getHeadingRadians();
 
         double xOriented = (Math.cos(headingRadians) * x) - (Math.sin(headingRadians) * y);
         double yOriented = (Math.cos(headingRadians) * y) + (Math.sin(headingRadians) * x);
 
         this.positionMinus2 = this.positionMinus1;
         this.positionMinus1 = this.currentPosition;
-        this.currentPosition.add(new Vector2D(
+        this.currentPosition.add(new Pose2D(
                 xOriented,
-                yOriented
-        ));
-        this.currentHeading = MathUtils.normalizeAngle(this.currentHeading + r, 0.0);
+                yOriented,
+                r
+        ),
+                true);
     }
 
 
-    public Vector2D getCurrentPosition() {
+    public Pose2D getCurrentPosition() {
         return this.currentPosition;
     }
 
-    public double getCurrentHeading() {
-        return currentHeading;
+    public Pose2D getDeltaPosition() {
+        return Pose2D.subtract(currentPosition, positionMinus1, true);
     }
 
     public Pose2D getRobotVelocity() {
@@ -101,7 +97,7 @@ public class MecanumTracker implements Tracker {
     }
 
     public double getCentripetalRadius() {
-        return Circle.getRadius(this.positionMinus2, this.positionMinus1, this.currentPosition);
+        return Circle.getRadius(this.positionMinus2.asVector(), this.positionMinus1.asVector(), this.currentPosition.asVector());
     }
 
     public Vector2D getCentripetalForce() {
@@ -119,9 +115,9 @@ public class MecanumTracker implements Tracker {
         private final Odometry backRight;
 
         private final Pose2D robotVelocity;
-        private final Vector2D positionMinus2;
-        private final Vector2D positionMinus1;
-        private final Vector2D currentPosition;
+        private final Pose2D positionMinus2;
+        private final Pose2D positionMinus1;
+        private final Pose2D currentPosition;
         private final double currentHeading;
         private final ElapsedTime elapsedTime;
         private final double lastTime;
@@ -165,9 +161,9 @@ public class MecanumTracker implements Tracker {
             this.backRight.setDirection(backRightDirection);
 
             this.robotVelocity = new Pose2D(0, 0, 0);
-            this.positionMinus2 = new Vector2D(0, 0);
-            this.positionMinus1 = new Vector2D(0, 0);
-            this.currentPosition = new Vector2D(0, 0);
+            this.positionMinus2 = new Pose2D(0, 0, 0);
+            this.positionMinus1 = new Pose2D(0, 0, 0);
+            this.currentPosition = new Pose2D(0, 0, 0);
             this.currentHeading = 0;
 
             this.elapsedTime = new ElapsedTime();

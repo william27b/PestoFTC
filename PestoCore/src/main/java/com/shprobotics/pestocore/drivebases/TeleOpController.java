@@ -16,11 +16,11 @@ public class TeleOpController {
     private IMU imu;
 
     private boolean useIMU = true;
-    private Tracker imuTracker;
+    private DeterministicTracker imuTracker;
     private double angleOffset;
 
     private boolean counteractCentripetalForce = false;
-    private Tracker tracker;
+    private DeterministicTracker tracker;
     private double MAX_VELOCITY;
 
     public TeleOpController(DriveController driveController, HardwareMap hardwareMap) {
@@ -35,7 +35,7 @@ public class TeleOpController {
         this.angleOffset = 0;
     }
 
-    public void counteractCentripetalForce(Tracker tracker, double MAX_VELOCITY) {
+    public void counteractCentripetalForce(DeterministicTracker tracker, double MAX_VELOCITY) {
         this.counteractCentripetalForce = true;
         this.tracker = tracker;
         this.MAX_VELOCITY = MAX_VELOCITY;
@@ -63,7 +63,7 @@ public class TeleOpController {
         this.configureIMU(new RevHubOrientationOnRobot(logoFacingDirection, usbFacingDirection));
     }
 
-    public void useTrackerIMU(Tracker tracker) {
+    public void useTrackerIMU(DeterministicTracker tracker) {
         this.useIMU = false;
         this.imuTracker = tracker;
     }
@@ -76,7 +76,7 @@ public class TeleOpController {
         if (useIMU) {
             return Math.toRadians(this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES) + this.angleOffset);
         } else {
-            return this.imuTracker.getCurrentHeading();
+            return this.imuTracker.getCurrentPosition().getHeadingRadians();
         }
     }
 
