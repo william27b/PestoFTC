@@ -3,10 +3,10 @@ package com.shprobotics.pestocore.geometries;
 import java.util.ArrayList;
 
 public class PathContainer {
-    private ArrayList<BezierCurve> curves;
-    private ArrayList<ParametricHeading> headings;
+    private final ArrayList<BezierCurve> curves;
+    private final ArrayList<ParametricHeading> headings;
     private double heading;
-    private ArrayList<Runnable> actions;
+    private final ArrayList<Runnable> actions;
     private final int n;
     private int i;
 
@@ -69,29 +69,17 @@ public class PathContainer {
     }
 
     public static class PathContainerBuilder {
-        private ArrayList<BezierCurve> curves;
-        private ArrayList<ParametricHeading> headings;
-        private ArrayList<Runnable> actions;
+        private final ArrayList<BezierCurve> curves;
+        private final ArrayList<ParametricHeading> headings;
+        private final ArrayList<Runnable> actions;
 
         private double increment;
-
-        private Pose2D startPosition;
 
         public PathContainerBuilder() {
             this.curves = new ArrayList<>();
             this.headings = new ArrayList<>();
             this.actions = new ArrayList<>();
 
-            this.startPosition = new Pose2D(0, 0, 0);
-            this.increment = 0.0005;
-        }
-
-        public PathContainerBuilder(Pose2D startPosition) {
-            this.curves = new ArrayList<>();
-            this.headings = new ArrayList<>();
-            this.actions = new ArrayList<>();
-
-            this.startPosition = startPosition;
             this.increment = 0.0005;
         }
 
