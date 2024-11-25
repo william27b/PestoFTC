@@ -3,14 +3,16 @@ package com.shprobotics.pestocore.algorithms;
 import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.sensors.SensorData;
 
-import org.apache.commons.math3.analysis.function.Gaussian;
-
 import java.util.Random;
 
 public class MonteCarlo {
-    public class Particle {
+    public static class Particle {
         private Pose2D pose;
         private double weight;
+
+        public Particle() {
+            this.weight = 0.0;
+        }
 
         protected void addPose(Pose2D dPose) {
             this.pose.add(dPose, true);
@@ -19,70 +21,72 @@ public class MonteCarlo {
         public Pose2D getPose() {
             return this.pose;
         }
+
+        public double getWeight() {
+            return this.weight;
+        }
+
+        public Particle copy() {
+            Particle particle = new Particle();
+            particle.pose = pose.copy();
+            particle.weight = weight;
+            return particle;
+        }
     }
 
     @FunctionalInterface
-    public interface ParticleResampler {
-        Particle resampleParticle();
+    public interface MotionUpdate {
+        void update(Pose2D deltaState, Particle particle);
+    }
+
+    @FunctionalInterface
+    public interface SensorUpdate {
+        void update(SensorData sensorData, Particle particle);
     }
 
     private final Particle[] state;
     private final int numParticles;
+    private double totalWeights;
     private final Random random;
-    private final ParticleResampler particleResampler;
-    public static final Gaussian gaussian = new Gaussian(0, 1/Math.sqrt(2 * Math.PI));
 
-    public MonteCarlo(int numParticles) {
-        this.state = new Particle[numParticles];
-        this.numParticles = numParticles;
-        this.random = new Random();
+    private final MotionUpdate motionUpdate;
+    private final SensorUpdate sensorUpdate;
 
-        this.particleResampler = () -> {
-            Particle particle = new Particle();
+    public MonteCarlo(MonteCarloBuilder monteCarloBuilder) {
+        this.state = monteCarloBuilder.state;
+        this.numParticles = monteCarloBuilder.numParticles;
+        this.totalWeights = monteCarloBuilder.totalWeights;
+        this.random = monteCarloBuilder.random;
 
-            particle.pose = new Pose2D(
-                    random.nextDouble() * 144,
-                    random.nextDouble() * 144,
-                    ((random.nextDouble() * 2) - 1) * Math.PI
-            );
+        this.motionUpdate = monteCarloBuilder.motionUpdate;
+        this.sensorUpdate = monteCarloBuilder.sensorUpdate;
+    }
 
-            return particle;
-        };
+    public Particle resampleParticle() {
+        double r = random.nextDouble() * totalWeights;
+        double s = 0.0;
 
-        for (int i = 0; i < numParticles; i++) {
-            state[i] = particleResampler.resampleParticle();
+        for (Particle p: state) {
+            s += p.weight;
+            if (r < s)
+                return p;
         }
-    }
 
-    public MonteCarlo(int numParticles, ParticleResampler particleResampler) {
-        this.state = new Particle[numParticles];
-        this.numParticles = numParticles;
-        this.random = new Random();
-        this.particleResampler = particleResampler;
-
-        for (int i = 0; i < numParticles; i++) {
-            state[i] = particleResampler.resampleParticle();
-        }
-    }
-
-    public void motionUpdate(Pose2D deltaState, Particle lastParticle) {
-        lastParticle.addPose(deltaState);
-    }
-
-    public void sensorUpdate(SensorData sensorData, Particle particle) {
-
-
-        particle.weight = sensorData.getProbability(particle.pose, gaussian);
+        return null;
     }
 
     public void update(Pose2D deltaState, SensorData sensorData) {
-        Particle[] state = new Particle[numParticles];
         for (int i = 0; i < numParticles; i++) {
-            motionUpdate(deltaState, state[i]);
-            sensorUpdate(sensorData, state[i]);
+            this.totalWeights -= state[i].weight;
+            motionUpdate.update(deltaState, state[i]);
+            sensorUpdate.update(sensorData, state[i]);
+            this.totalWeights += state[i].weight;
 
-            if (random.nextDouble() > state[i].weight)
-                state[i] = particleResampler.resampleParticle();
+            if (random.nextDouble() > state[i].weight) {
+                this.totalWeights -= state[i].weight;
+                state[i] = resampleParticle();
+                this.totalWeights += state[i].weight;
+            }
         }
     }
 
@@ -95,5 +99,43 @@ public class MonteCarlo {
                 mostConfidentParticle = particle;
 
         return mostConfidentParticle;
+    }
+
+    public static class MonteCarloBuilder {
+        public final Particle[] state;
+        public final int numParticles;
+        public double totalWeights;
+        public final Random random;
+
+        public MotionUpdate motionUpdate;
+        public SensorUpdate sensorUpdate;
+
+        public MonteCarloBuilder(Pose2D startingPosition, int numParticles) {
+            this.state = new Particle[numParticles];
+            this.numParticles = numParticles;
+            this.totalWeights = 0.0;
+            this.random = new Random();
+
+            this.motionUpdate = (deltaState, lastParticle) -> lastParticle.addPose(deltaState);
+            this.sensorUpdate = (sensorData, lastParticle) -> lastParticle.weight = sensorData.getProbability(lastParticle.getPose());
+
+            for (int i = 0; i < numParticles; i++) {
+                state[i] = new Particle();
+                state[i].pose = startingPosition;
+                state[i].weight = 0.0;
+            }
+        }
+
+        public void setMotionUpdate(MotionUpdate motionUpdate) {
+            this.motionUpdate = motionUpdate;
+        }
+
+        public void setSensorUpdate(SensorUpdate sensorUpdate) {
+            this.sensorUpdate = sensorUpdate;
+        }
+
+        public MonteCarlo build() {
+            return new MonteCarlo(this);
+        }
     }
 }

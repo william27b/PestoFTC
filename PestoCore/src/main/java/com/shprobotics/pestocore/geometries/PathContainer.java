@@ -7,6 +7,7 @@ public class PathContainer {
     private final ArrayList<ParametricHeading> headings;
     private double heading;
     private final ArrayList<Runnable> actions;
+    private boolean executed;
     private final int n;
     private int i;
 
@@ -17,6 +18,7 @@ public class PathContainer {
         this.headings = pathContainerBuilder.headings;
         this.heading = 0;
         this.actions = pathContainerBuilder.actions;
+        this.executed = false;
         this.n = curves.size();
         this.i = 0;
 
@@ -28,10 +30,19 @@ public class PathContainer {
         for (BezierCurve curve: curves) {
             curve.reset();
         }
+        executed = false;
     }
 
     public Vector2D getEndpoint() {
         return curves.get(n-1).getPoint(1.0);
+    }
+
+    public boolean isFinished() {
+        return curves.get(i).getT() == 1;
+    }
+
+    public boolean isExecuted() {
+        return executed;
     }
 
     public Vector2D getNextPosition(Vector2D robotPosition) {
@@ -39,6 +50,8 @@ public class PathContainer {
         if (current.getT() == 1) {
             if (this.actions.get(i) != null) {
                 this.actions.get(i).run();
+                if (i == n-1)
+                    executed = true;
             }
             this.i = Math.min(n-1, i+1);
             current = curves.get(i);
