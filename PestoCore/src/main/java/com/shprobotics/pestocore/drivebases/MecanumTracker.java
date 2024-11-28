@@ -79,8 +79,7 @@ public class MecanumTracker implements DeterministicTracker {
                 xOriented,
                 yOriented,
                 r
-        ),
-                true);
+        ));
     }
 
 

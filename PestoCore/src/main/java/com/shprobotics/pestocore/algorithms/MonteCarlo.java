@@ -15,7 +15,7 @@ public class MonteCarlo {
         }
 
         protected void addPose(Pose2D dPose) {
-            this.pose.add(dPose, true);
+            this.pose.add(dPose);
         }
 
         public Pose2D getPose() {

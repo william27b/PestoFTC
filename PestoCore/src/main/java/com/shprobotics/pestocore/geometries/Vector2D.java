@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 public class Vector2D {
     public static final Vector2D ZERO = new Vector2D(0, 0);
     public static final Vector2D ONE = new Vector2D(1, 1);
+    public static final Vector2D NONE = null;
 
     private double x;
     private double y;
@@ -81,6 +82,16 @@ public class Vector2D {
     public Vector2D normalize() {
         double magnitude = getMagnitude();
         return new Vector2D(x / magnitude, y / magnitude);
+    }
+
+    public static Vector2D rotate(Vector2D vector2D, double heading) {
+        double x = vector2D.getX();
+        double y = vector2D.getY();
+
+        return new Vector2D(
+                Math.cos(heading) * x - Math.sin(heading) * y,
+                Math.sin(heading) * x + Math.cos(heading) * y
+        );
     }
 
     public void rotate(double heading) {

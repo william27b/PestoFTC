@@ -79,8 +79,7 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
                     xOriented,
                     yOriented,
                     r
-                ),
-                true
+                )
         );
     }
 

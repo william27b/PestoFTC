@@ -5,6 +5,8 @@ import androidx.annotation.NonNull;
 import org.apache.commons.math3.util.MathUtils;
 
 public class Pose2D {
+    public static final Pose2D NONE = null;
+
     private double x, y, heading;
 
     public Pose2D(double x, double y, double heading) {
@@ -25,18 +27,13 @@ public class Pose2D {
         return heading;
     }
 
-    public void setHeadingRadians(double heading, boolean normalizeHeading) {
-        if (normalizeHeading) {
-            this.heading = MathUtils.normalizeAngle(heading, 0.0);
-        } else{
-            this.heading = heading;
-        }
+    public void setHeadingRadians(double heading) {
+        this.heading = MathUtils.normalizeAngle(heading, 0.0);
     }
 
-    public static Pose2D add(Pose2D pose1, Pose2D pose2, boolean normalizeHeading) {
+    public static Pose2D add(Pose2D pose1, Pose2D pose2) {
         double heading = pose1.getHeadingRadians() + pose2.getHeadingRadians();
-        if (normalizeHeading)
-            heading = MathUtils.normalizeAngle(heading, 0.0);
+        heading = MathUtils.normalizeAngle(heading, 0.0);
 
         return new Pose2D(
                 pose1.getX() + pose2.getX(),
@@ -45,10 +42,23 @@ public class Pose2D {
         );
     }
 
-    public void add(Pose2D pose2D, boolean normalizeHeading) {
+    public void add(Pose2D pose2D) {
         this.x += pose2D.x;
         this.y += pose2D.y;
-        this.setHeadingRadians(this.getHeadingRadians() + pose2D.heading, normalizeHeading);
+        this.setHeadingRadians(this.getHeadingRadians() + pose2D.heading);
+    }
+
+    public static Pose2D add(Pose2D pose2D, Vector2D vector2D) {
+        return new Pose2D(
+                pose2D.getX() + vector2D.getX(),
+                pose2D.getY() + vector2D.getY(),
+                pose2D.getHeadingRadians()
+        );
+    }
+
+    public void add(Vector2D vector2D) {
+        this.x += vector2D.getX();
+        this.y += vector2D.getY();
     }
 
     public static Pose2D subtract(Pose2D pose1, Pose2D pose2, boolean normalizeHeading) {
@@ -66,7 +76,18 @@ public class Pose2D {
     public void subtract(Pose2D pose2D, boolean normalizeHeading) {
         this.x -= pose2D.x;
         this.y -= pose2D.y;
-        this.setHeadingRadians(this.getHeadingRadians() - pose2D.heading, normalizeHeading);
+        this.setHeadingRadians(this.getHeadingRadians() - pose2D.heading);
+    }
+
+    public static Pose2D rotate(Pose2D pose2D, double heading) {
+        double x = pose2D.getX();
+        double y = pose2D.getY();
+
+        return new Pose2D(
+                Math.cos(heading) * x - Math.sin(heading) * y,
+                Math.sin(heading) * x + Math.cos(heading) * y,
+                pose2D.getHeadingRadians() + heading
+        );
     }
 
     public void rotate(double heading) {
