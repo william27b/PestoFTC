@@ -9,8 +9,8 @@ import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.geometries.Vector2D;
 
 public class ThreeWheelOdometryTracker implements DeterministicTracker {
-    private final double FORWARD_OFFSET;
-    private final double ODOMETRY_WIDTH;
+    public final double FORWARD_OFFSET;
+    public final double ODOMETRY_WIDTH;
 
     public final Odometry leftOdometry;
     public final Odometry rightOdometry;
@@ -19,6 +19,7 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
     private Pose2D robotVelocity;
     private Pose2D positionMinus2;
     private Pose2D positionMinus1;
+    private Pose2D deltaPosition;
     private Pose2D currentPosition;
 
     private final ElapsedTime elapsedTime;
@@ -45,6 +46,7 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         this.robotVelocity = new Pose2D(0, 0, 0);
         this.positionMinus2 = new Pose2D(0, 0, 0);
         this.positionMinus1 = new Pose2D(0, 0, 0);
+        this.deltaPosition = new Pose2D(0, 0, 0);
         this.currentPosition = new Pose2D(0, 0, 0);
     }
 
@@ -74,12 +76,14 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         this.positionMinus2 = this.positionMinus1;
         this.positionMinus1 = this.currentPosition;
 
+        this.deltaPosition = new Pose2D(
+                xOriented,
+                yOriented,
+                r
+        );
+
         this.currentPosition.add(
-                new Pose2D(
-                    xOriented,
-                    yOriented,
-                    r
-                )
+                deltaPosition
         );
     }
 
@@ -93,7 +97,7 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
     }
 
     public Pose2D getDeltaPosition() {
-        return Pose2D.subtract(this.currentPosition, this.positionMinus1, true);
+        return deltaPosition;
     }
 
     public double getCentripetalRadius() {

@@ -32,4 +32,9 @@ public class Odometry extends DcMotorImplEx {
         this.lastCall = currentPosition;
         return this.direction * (currentPosition - lastCall) / this.TICKS_PER_INCH;
     }
+
+    public double getTotalInchesTravelled() {
+        int currentPosition = this.getCurrentPosition();
+        return this.direction * (currentPosition) / this.TICKS_PER_INCH;
+    }
 }
