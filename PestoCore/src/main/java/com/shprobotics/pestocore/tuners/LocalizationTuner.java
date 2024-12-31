@@ -8,7 +8,7 @@ import com.shprobotics.pestocore.drivebases.TeleOpController;
 import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.geometries.Vector2D;
 
-public abstract class LocalizatonTuner extends LinearOpMode {
+public abstract class LocalizationTuner extends LinearOpMode {
     MecanumController mecanumController;
     DeterministicTracker tracker;
     TeleOpController teleOpController;
