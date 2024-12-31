@@ -9,6 +9,8 @@ import com.shprobotics.pestocore.geometries.Vector2D;
 
 public abstract class DecelerationTuner extends LinearOpMode {
     private Vector2D before;
+    private Vector2D velocity;
+
     public MecanumController mecanumController;
     public DeterministicTracker tracker;
     public TeleOpController teleOpController;
@@ -33,13 +35,16 @@ public abstract class DecelerationTuner extends LinearOpMode {
             tracker.update();
             teleOpController.updateSpeed(gamepad1);
             before = tracker.getCurrentPosition().asVector().copy();
+            velocity = tracker.getRobotVelocity().asVector().copy();
         }
 
         mecanumController.drive(0, 0, 0);
 
         while (opModeIsActive() && !isStopRequested()) {
             tracker.update();
-            telemetry.addData("deceleration", Vector2D.dist(before, tracker.getCurrentPosition().asVector()));
+            telemetry.addData("deceleration", velocity.getMagnitude() / (2 * Vector2D.dist(before, tracker.getCurrentPosition().asVector())));
+            telemetry.addData("max velocity", velocity.getMagnitude());
+            telemetry.addData("distance travelled", 2 * Vector2D.dist(before, tracker.getCurrentPosition().asVector()));
             telemetry.update();
         }
     }

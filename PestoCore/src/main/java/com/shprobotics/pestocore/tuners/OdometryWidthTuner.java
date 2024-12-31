@@ -8,7 +8,7 @@ import com.shprobotics.pestocore.drivebases.TeleOpController;
 import com.shprobotics.pestocore.drivebases.ThreeWheelOdometryTracker;
 import com.shprobotics.pestocore.geometries.Pose2D;
 
-public abstract class ThreeWheelOdometryTuner extends LinearOpMode {
+public abstract class OdometryWidthTuner extends LinearOpMode {
     public MecanumController mecanumController;
     public ThreeWheelOdometryTracker tracker;
     public TeleOpController teleOpController;
@@ -51,10 +51,9 @@ public abstract class ThreeWheelOdometryTuner extends LinearOpMode {
             heading += deltaPosition.getHeadingRadians();
 
             telemetry.addData("heading total", heading);
-            telemetry.addData("x position", tracker.getCurrentPosition().getX());
             telemetry.addLine();
-            telemetry.addData("forward offset", tracker.centerOdometry.getTotalInchesTravelled() / heading);
-            telemetry.addData("odometry width", tracker.ODOMETRY_WIDTH * Math.PI * 20 / heading);
+
+            telemetry.addData("odometry width", tracker.ODOMETRY_WIDTH * heading / (Math.PI * 20));
             telemetry.update();
         }
     }

@@ -7,8 +7,7 @@ public class PID {
     private final double kI;
     private final double kD;
 
-    private double lowPassFilter;
-    private double previous;
+    private LowPassFilter lowPassFilter;
 
     private double integralSum;
     private double maxIntegralProportionRatio;
@@ -24,8 +23,7 @@ public class PID {
         this.kI = kI;
         this.kD = kD;
 
-        this.lowPassFilter = 0;
-        this.previous = 0;
+        this.lowPassFilter = new LowPassFilter();
 
         this.integralSum = 0;
         this.maxIntegralProportionRatio = Double.POSITIVE_INFINITY;
@@ -39,15 +37,14 @@ public class PID {
     }
 
     public void reset() {
-        this.previous = 0;
-
+        this.lowPassFilter.reset();
         this.integralSum = 0;
 
         this.lastError = 0;
         this.lastTime = elapsedTime.seconds();
     }
 
-    public void setLowPassFilter(double lowPassFilter) {
+    public void setLowPassFilter(LowPassFilter lowPassFilter) {
         this.lowPassFilter = lowPassFilter;
     }
 
@@ -57,9 +54,7 @@ public class PID {
 
     public double getOutput(double current, double target) {
         // Apply low pass filter, save previous measured value
-        double tmp = lowPassFilter * current + (1 - lowPassFilter) * previous;
-        previous = current;
-        current = tmp;
+        current = lowPassFilter.forward(current);
 
         double currentTime = elapsedTime.seconds();
         this.deltaTime = currentTime - lastTime;

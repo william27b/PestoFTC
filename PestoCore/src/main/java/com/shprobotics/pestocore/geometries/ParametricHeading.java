@@ -3,35 +3,28 @@ package com.shprobotics.pestocore.geometries;
 import org.apache.commons.math3.util.MathUtils;
 
 public class ParametricHeading {
-    private final double startHeading;
-    private final double endHeading;
+    private final double[] headings;
+    private final int n;
 
-    public ParametricHeading(double startHeading, double endHeading) {
-        this.startHeading = startHeading;
-        this.endHeading = MathUtils.normalizeAngle(endHeading, startHeading);
-    }
+    public ParametricHeading(double[] headings) {
+        assert headings.length >= 2;
 
-    public ParametricHeading(double startHeading, double endHeading, boolean CW) {
-        this.startHeading = startHeading;
-        endHeading = MathUtils.normalizeAngle(endHeading, startHeading);
-
-        if (CW)
-            if (endHeading > this.startHeading) this.endHeading = endHeading - (2*Math.PI);
-            else this.endHeading = endHeading;
-        else
-            if (endHeading < this.startHeading) this.endHeading = endHeading + (2*Math.PI);
-            else this.endHeading = endHeading;
+        this.headings = headings;
+        this.n = headings.length;
     }
 
     public double getHeading(double t) {
-        return startHeading + (endHeading - startHeading) * t;
-    }
+        assert t >= 0 && t <= 1;
 
-    public double getStartHeading() {
-        return startHeading;
-    }
+        if (t == 1)
+            return headings[n-1];
 
-    public double getEndHeading() {
-        return endHeading;
+        int startIndex = (int) (headings.length * t);
+        double startHeading = headings[startIndex];
+        double endHeading = headings[startIndex+1];
+
+        t *= (startIndex + 1.0) / n;
+
+        return MathUtils.normalizeAngle(startHeading + (endHeading - startHeading) * t, 0.0);
     }
 }
