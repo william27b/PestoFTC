@@ -9,9 +9,9 @@ import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.geometries.Vector2D;
 
 public abstract class LocalizationTuner extends LinearOpMode {
-    MecanumController mecanumController;
-    DeterministicTracker tracker;
-    TeleOpController teleOpController;
+    public MecanumController mecanumController;
+    public DeterministicTracker tracker;
+    public TeleOpController teleOpController;
 
     public abstract void setMecanumController(HardwareMap hardwareMap);
     public abstract void setTracker(HardwareMap hardwareMap);
