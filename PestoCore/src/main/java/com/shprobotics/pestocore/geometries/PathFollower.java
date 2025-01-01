@@ -13,6 +13,31 @@ public class PathFollower {
         Vector2D decelerate(PathFollower pathFollower, double rotate);
     }
 
+    public static final DecelerationFunction SQUID_DECELERATION = (PathFollower pathFollower, double heading) -> {
+        Vector2D vectorToEndpoint = Vector2D.subtract(pathFollower.endpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
+        double forward = vectorToEndpoint.getY();
+        double strafe = vectorToEndpoint.getX();
+
+        double temp = forward * Math.cos(heading) + strafe * Math.sin(-heading);
+        strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
+        forward = temp;
+
+        // reconsider
+        double drivePower = pathFollower.endpointPID.getOutput(pathFollower.tracker.getCurrentPosition().getMagnitude(), pathFollower.endpoint.getMagnitude());
+
+        // SQUID
+        drivePower = Math.sqrt(drivePower);
+
+        Vector2D drive = new Vector2D(
+                forward,
+                strafe
+        );
+
+        drive.scale(drivePower);
+
+        return drive;
+    };
+
     @FunctionalInterface
     public interface CheckFinishedFunction {
         boolean isFinished(PathFollower pathFollower, double toleranceXY, double toleranceR);
