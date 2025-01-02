@@ -19,7 +19,7 @@ public class ParametricHeading {
         if (t == 1)
             return headings[n-1];
 
-        int startIndex = (int) (headings.length * t);
+        int startIndex = (int) ((headings.length - 1) * t);
         double startHeading = headings[startIndex];
         double endHeading = headings[startIndex+1];
 
