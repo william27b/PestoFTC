@@ -2,5 +2,6 @@
 .gradle/*
 .idea*
 .idea/*
-*PestoFTC.jarlocal.properties
+*PestoFTC.jar
+local.properties
 .idea/gradle.xml
