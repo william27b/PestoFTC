@@ -38,10 +38,37 @@ public class PathFollower {
         return drive;
     };
 
+    public static final DecelerationFunction DEFAULT_DECELERATION = (PathFollower pathFollower, double heading) -> {
+        Vector2D vectorToEndpoint = Vector2D.subtract(pathFollower.endpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
+        double forward = vectorToEndpoint.getY();
+        double strafe = vectorToEndpoint.getX();
+
+        double temp = forward * Math.cos(heading) + strafe * Math.sin(-heading);
+        strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
+        forward = temp;
+
+        // reconsider
+        double drivePower = pathFollower.endpointPID.getOutput(pathFollower.tracker.getCurrentPosition().getMagnitude(), pathFollower.endpoint.getMagnitude());
+
+        Vector2D drive = new Vector2D(
+                forward,
+                strafe
+        );
+
+        drive.scale(drivePower);
+
+        return drive;
+    };
+
     @FunctionalInterface
     public interface CheckFinishedFunction {
         boolean isFinished(PathFollower pathFollower, double toleranceXY, double toleranceR);
     }
+
+    public static final CheckFinishedFunction DEFAULT_CHECK_FINISHED = (PathFollower pathFollower, double toleranceXY1, double toleranceR1) -> (
+            Vector2D.dist(pathFollower.tracker.getCurrentPosition().asVector(), pathFollower.pathContainer.getEndpoint()) < toleranceXY1
+                    && normalizeAngle(pathFollower.tracker.getCurrentPosition().getHeadingRadians() - pathFollower.pathContainer.getHeading(), Math.PI) < toleranceR1
+    );
 
     private final DriveController driveController;
     private final DeterministicTracker tracker;
@@ -183,32 +210,8 @@ public class PathFollower {
             this.tracker = tracker;
             this.pathContainer = pathContainer;
 
-            this.checkFinishedFunction = (PathFollower pathFollower, double toleranceXY1, double toleranceR1) -> (
-                    Vector2D.dist(pathFollower.tracker.getCurrentPosition().asVector(), pathFollower.pathContainer.getEndpoint()) < toleranceXY1
-                            && normalizeAngle(pathFollower.tracker.getCurrentPosition().getHeadingRadians() - pathFollower.pathContainer.getHeading(), Math.PI) < toleranceR1
-            );
-
-            this.decelerationFunction = (PathFollower pathFollower, double heading) -> {
-                Vector2D vectorToEndpoint = Vector2D.subtract(pathFollower.endpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
-                double forward = vectorToEndpoint.getY();
-                double strafe = vectorToEndpoint.getX();
-
-                double temp = forward * Math.cos(heading) + strafe * Math.sin(-heading);
-                strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
-                forward = temp;
-
-                // reconsider
-                double drivePower = pathFollower.endpointPID.getOutput(pathFollower.tracker.getCurrentPosition().getMagnitude(), pathFollower.endpoint.getMagnitude());
-
-                Vector2D drive = new Vector2D(
-                        forward,
-                        strafe
-                );
-
-                drive.scale(drivePower);
-
-                return drive;
-            };
+            this.checkFinishedFunction = DEFAULT_CHECK_FINISHED;
+            this.decelerationFunction = DEFAULT_DECELERATION;
 
             this.deceleration = 1;
             this.decelerating = false;
