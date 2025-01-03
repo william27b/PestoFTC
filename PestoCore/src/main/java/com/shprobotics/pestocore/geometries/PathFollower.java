@@ -114,11 +114,6 @@ public class PathFollower {
 
     public boolean isFinished(double toleranceXY, double toleranceR) {
         return checkFinishedFunction.isFinished(this, toleranceXY, toleranceR);
-
-//        return (
-//                Vector2D.dist(tracker.getCurrentPosition().asVector(), this.pathContainer.getEndpoint()) < toleranceXY
-//                && normalizeAngle(tracker.getCurrentPosition().getHeadingRadians() - this.pathContainer.getHeading(), Math.PI) < toleranceR
-//        );
     }
 
     public boolean isCompleted() {
