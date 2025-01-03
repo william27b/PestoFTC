@@ -20,8 +20,11 @@ public enum GamepadKey {
 
     LEFT_STICK_BUTTON (10, gamepad -> gamepad.left_stick_button),
     RIGHT_STICK_BUTTON (11, gamepad -> gamepad.right_stick_button),
+    LEFT_TRIGGER(12, gamepad -> gamepad.left_trigger > 0.1),
+    RIGHT_TRIGGER(13, gamepad -> gamepad.right_trigger > 0.1),
 
-    TOUCHPAD (12, gamepad -> gamepad.touchpad);
+
+    TOUCHPAD (14, gamepad -> gamepad.touchpad);
 
     GamepadKey(int idx, Function<Gamepad, Boolean> isPressed) {
         this.idx = idx;
