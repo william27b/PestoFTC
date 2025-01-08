@@ -52,8 +52,7 @@ public class PathContainer {
         return executed;
     }
 
-    public Vector2D getNextPosition(Pose2D robotPosition) {
-        Vector2D robotVector = robotPosition.asVector();
+    public Vector2D getNextPosition(Vector2D robotPosition, double robotHeading) {
         BezierCurve current = curves.get(i);
 
         if (current == null) {
@@ -65,7 +64,7 @@ public class PathContainer {
                         executed = true;
                 }
                 this.i = Math.min(n-1, i+1);
-                return getNextPosition(robotPosition);
+                return getNextPosition(robotPosition, heading);
             }
 
             currentHeading.increment(increment);
@@ -77,7 +76,7 @@ public class PathContainer {
             double nextHeading = currentHeading.getHeading();
 
             // TODO: check math
-            while (abs(nextHeading - robotPosition.getHeadingRadians()) < abs(heading - robotPosition.getHeadingRadians())) {
+            while (abs(nextHeading - robotHeading) < abs(heading - robotHeading)) {
                 heading = nextHeading;
                 currentHeading.increment(increment);
                 nextHeading = currentHeading.getHeading();
@@ -100,13 +99,13 @@ public class PathContainer {
         Vector2D currentPosition = current.getPoint();
         current.increment(increment);
 
-        if (Vector2D.equals(currentPosition, robotVector)) {
+        if (Vector2D.equals(currentPosition, robotPosition)) {
             current.increment(increment);
         }
 
         Vector2D nextPosition = current.getPoint();
 
-        while (Vector2D.fastdist(nextPosition, robotVector) < Vector2D.fastdist(currentPosition, robotVector)) {
+        while (Vector2D.fastdist(nextPosition, robotPosition) < Vector2D.fastdist(currentPosition, robotPosition)) {
             currentPosition = nextPosition;
             current.increment(increment);
             nextPosition = current.getPoint();

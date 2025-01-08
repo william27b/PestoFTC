@@ -167,7 +167,7 @@ public class PathFollower {
             return;
         }
 
-        Vector2D nextPosition = pathContainer.getNextPosition(robotPosition);
+        Vector2D nextPosition = pathContainer.getNextPosition(robotPosition, heading);
         Vector2D vectorToNextPosition = Vector2D.subtract(nextPosition, robotPosition);
 
         double forward = vectorToNextPosition.getY();
