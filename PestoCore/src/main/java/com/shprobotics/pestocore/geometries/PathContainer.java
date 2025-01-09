@@ -1,5 +1,6 @@
 package com.shprobotics.pestocore.geometries;
 
+import static org.apache.commons.math3.util.MathUtils.normalizeAngle;
 import static java.lang.Math.abs;
 
 import java.util.ArrayList;
@@ -53,67 +54,53 @@ public class PathContainer {
     }
 
     public Vector2D getNextPosition(Vector2D robotPosition, double robotHeading) {
-        BezierCurve current = curves.get(i);
-
-        if (current == null) {
-            ParametricHeading currentHeading = headings.get(i);
-            if (currentHeading.getT() == 1) {
-                if (this.actions.get(i) != null) {
-                    this.actions.get(i).run();
-                    if (i == n-1)
-                        executed = true;
-                }
-                this.i = Math.min(n-1, i+1);
-                return getNextPosition(robotPosition, heading);
-            }
-
-            currentHeading.increment(increment);
-
-            if (heading == currentHeading.getHeading()) {
-                currentHeading.increment(increment);
-            }
-
-            double nextHeading = currentHeading.getHeading();
-
-            // TODO: check math
-            while (abs(nextHeading - robotHeading) < abs(heading - robotHeading)) {
-                heading = nextHeading;
-                currentHeading.increment(increment);
-                nextHeading = currentHeading.getHeading();
-            }
-
-            this.heading = headings.get(i).getHeading();
-            return this.currentPosition;
-        }
-
-        if (current.getT() == 1) {
+        // currentCurve
+        BezierCurve currentCurve = curves.get(i);
+        if (currentCurve.getT() == 1) {
             if (this.actions.get(i) != null) {
                 this.actions.get(i).run();
                 if (i == n-1)
                     executed = true;
             }
             this.i = Math.min(n-1, i+1);
-            current = curves.get(i);
+            currentCurve = curves.get(i);
         }
 
-        Vector2D currentPosition = current.getPoint();
-        current.increment(increment);
+        Vector2D currentPosition = currentCurve.getPoint();
+        currentCurve.increment(increment);
 
         if (Vector2D.equals(currentPosition, robotPosition)) {
-            current.increment(increment);
+            currentCurve.increment(increment);
         }
 
-        Vector2D nextPosition = current.getPoint();
+        Vector2D nextPosition = currentCurve.getPoint();
 
         while (Vector2D.fastdist(nextPosition, robotPosition) < Vector2D.fastdist(currentPosition, robotPosition)) {
             currentPosition = nextPosition;
-            current.increment(increment);
-            nextPosition = current.getPoint();
+            currentCurve.increment(increment);
+            nextPosition = currentCurve.getPoint();
         }
 
-        this.heading = headings.get(i) != null ? headings.get(i).getHeading(current.getT()) : this.heading;
+        // currentHeading
+        ParametricHeading currentHeading = headings.get(i);
+        currentHeading.increment(increment);
+
+        if (heading == currentHeading.getHeading()) {
+            currentHeading.increment(increment);
+        }
+
+        double nextHeading = currentHeading.getHeading();
+
+        // TODO: check math
+        while (abs(nextHeading - normalizeAngle(robotHeading, nextHeading)) < abs(heading - normalizeAngle(robotHeading, heading))) {
+            heading = nextHeading;
+            currentHeading.increment(increment);
+            nextHeading = currentHeading.getHeading();
+        }
 
         this.currentPosition = currentPosition;
+        this.heading = nextHeading;
+
         return currentPosition;
     }
 
@@ -155,12 +142,12 @@ public class PathContainer {
             return this;
         }
 
-        public PathContainerBuilder addCurve(ParametricHeading heading) {
-            this.curves.add(null);
-            this.headings.add(heading);
-            this.actions.add(null);
-            return this;
-        }
+//        public PathContainerBuilder addCurve(ParametricHeading heading) {
+//            this.curves.add(null);
+//            this.headings.add(heading);
+//            this.actions.add(null);
+//            return this;
+//        }
 
         public PathContainerBuilder addCurve(BezierCurve curve, ParametricHeading heading) {
             this.curves.add(curve);
