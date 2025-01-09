@@ -6,6 +6,7 @@ plugins {
 repositories {
     mavenCentral()
     maven { url = 'https://jitpack.io' }
+    maven { url "https://repo.dairy.foundation/releases" }
 }
 
 android {
@@ -42,7 +43,7 @@ dependencies {
     implementation 'org.reflections:reflections:0.10.2'
     implementation 'org.firstinspires.ftc:Vision:9.0.1'
 
-//    implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:v3.0.1-ALPHA'
+    implementation "dev.frozenmilk.dairy:CachingHardware:1.0.0"
 
     implementation 'org.ejml:ejml-all:0.43'
 }

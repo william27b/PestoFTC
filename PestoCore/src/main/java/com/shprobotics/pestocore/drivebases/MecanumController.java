@@ -6,13 +6,15 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.shprobotics.pestocore.geometries.Vector2D;
 
+import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
+
 public class MecanumController implements DriveController {
-    protected DcMotorEx frontLeft, frontRight, backLeft, backRight;
+    protected CachingDcMotorEx frontLeft, frontRight, backLeft, backRight;
     private Vector2D[] powerVectors = new Vector2D[]{new Vector2D(1, 1), new Vector2D(-1, 1), new Vector2D(-1, 1), new Vector2D(1, 1)};
 
     private double driveSpeed = 1;
 
-    public MecanumController(DcMotorEx frontLeft, DcMotorEx frontRight, DcMotorEx backLeft, DcMotorEx backRight) {
+    public MecanumController(CachingDcMotorEx frontLeft, CachingDcMotorEx frontRight, CachingDcMotorEx backLeft, CachingDcMotorEx backRight) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
@@ -20,14 +22,21 @@ public class MecanumController implements DriveController {
     }
 
     public MecanumController(HardwareMap hardwareMap, String[] motorNames) {
-        this.frontLeft = hardwareMap.get(DcMotorEx.class, motorNames[0]);
-        this.frontRight = hardwareMap.get(DcMotorEx.class, motorNames[1]);
-        this.backLeft = hardwareMap.get(DcMotorEx.class, motorNames[2]);
-        this.backRight = hardwareMap.get(DcMotorEx.class, motorNames[3]);
+        this.frontLeft = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[0]));
+        this.frontRight = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[1]));
+        this.backLeft = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[2]));
+        this.backRight = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[3]));
     }
 
     public MecanumController(HardwareMap hardwareMap) {
         this(hardwareMap, new String[]{"frontLeft", "frontRight", "backLeft", "backRight"});
+    }
+
+    public void setCachingTolerance(double cachingTolerance) {
+        frontLeft.setCachingTolerance(cachingTolerance);
+        frontRight.setCachingTolerance(cachingTolerance);
+        backLeft.setCachingTolerance(cachingTolerance);
+        backRight.setCachingTolerance(cachingTolerance);
     }
 
     @Override
@@ -94,10 +103,10 @@ public class MecanumController implements DriveController {
 
         double max = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)));
 
-        frontLeft.setPower(frontLeftPower * this.driveSpeed / max);
-        frontRight.setPower(frontRightPower * this.driveSpeed / max);
-        backLeft.setPower(backLeftPower * this.driveSpeed / max);
-        backRight.setPower(backRightPower * this.driveSpeed / max);
+        frontLeft.setPowerResult(frontLeftPower * this.driveSpeed / max);
+        frontRight.setPowerResult(frontRightPower * this.driveSpeed / max);
+        backLeft.setPowerResult(backLeftPower * this.driveSpeed / max);
+        backRight.setPowerResult(backRightPower * this.driveSpeed / max);
     }
 
     @Override
@@ -109,9 +118,9 @@ public class MecanumController implements DriveController {
 
         double max = Math.max(1, Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
 
-        frontLeft.setPower(frontLeftPower * this.driveSpeed / max);
-        frontRight.setPower(frontRightPower * this.driveSpeed / max);
-        backLeft.setPower(backLeftPower * this.driveSpeed / max);
-        backRight.setPower(backRightPower * this.driveSpeed / max);
+        frontLeft.setPowerResult(frontLeftPower * this.driveSpeed / max);
+        frontRight.setPowerResult(frontRightPower * this.driveSpeed / max);
+        backLeft.setPowerResult(backLeftPower * this.driveSpeed / max);
+        backRight.setPowerResult(backRightPower * this.driveSpeed / max);
     }
 }
