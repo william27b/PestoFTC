@@ -81,25 +81,29 @@ public class PathContainer {
             nextPosition = currentCurve.getPoint();
         }
 
+        this.currentPosition = currentPosition;
+
         // currentHeading
         ParametricHeading currentHeading = headings.get(i);
-        currentHeading.increment(increment);
 
-        if (heading == currentHeading.getHeading()) {
+        if (currentHeading != null) {
             currentHeading.increment(increment);
+
+            if (heading == currentHeading.getHeading()) {
+                currentHeading.increment(increment);
+            }
+
+            double nextHeading = currentHeading.getHeading();
+
+            // TODO: check math
+            while (abs(nextHeading - normalizeAngle(robotHeading, nextHeading)) < abs(heading - normalizeAngle(robotHeading, heading))) {
+                heading = nextHeading;
+                currentHeading.increment(increment);
+                nextHeading = currentHeading.getHeading();
+            }
+
+            this.heading = nextHeading;
         }
-
-        double nextHeading = currentHeading.getHeading();
-
-        // TODO: check math
-        while (abs(nextHeading - normalizeAngle(robotHeading, nextHeading)) < abs(heading - normalizeAngle(robotHeading, heading))) {
-            heading = nextHeading;
-            currentHeading.increment(increment);
-            nextHeading = currentHeading.getHeading();
-        }
-
-        this.currentPosition = currentPosition;
-        this.heading = nextHeading;
 
         return currentPosition;
     }
