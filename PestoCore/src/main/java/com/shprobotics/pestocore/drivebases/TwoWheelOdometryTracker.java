@@ -47,11 +47,16 @@ public class TwoWheelOdometryTracker implements DeterministicTracker {
     }
 
     public void reset() {
+        reset(0.0);
+    }
+
+    public void reset(double heading) {
         this.robotVelocity = new Pose2D(0, 0, 0);
         this.positionMinus2 = new Pose2D(0, 0, 0);
         this.positionMinus1 = new Pose2D(0, 0, 0);
-        this.currentPosition = new Pose2D(0, 0, 0);
-        this.imuNormal = this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        this.currentPosition = new Pose2D(0, 0, heading);
+
+        this.imuNormal = this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + heading;
     }
 
     public void resetTime() {
