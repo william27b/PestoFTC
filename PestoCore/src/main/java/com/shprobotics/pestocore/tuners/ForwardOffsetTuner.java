@@ -44,7 +44,7 @@ public abstract class ForwardOffsetTuner extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             tracker.update();
 
-            distanceRotated = (tracker.leftOdometry.getTotalInchesTravelled() - tracker.rightOdometry.getTotalInchesTravelled()) / 2;
+            distanceRotated = -(tracker.leftOdometry.getTotalInchesTravelled() - tracker.rightOdometry.getTotalInchesTravelled());
 
             telemetry.addData("Forward Offset", tracker.centerOdometry.getTotalInchesTravelled() / distanceRotated);
             telemetry.update();
