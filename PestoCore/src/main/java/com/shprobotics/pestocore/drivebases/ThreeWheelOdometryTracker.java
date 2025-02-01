@@ -54,6 +54,14 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         this.currentPosition = new Pose2D(0, 0, heading);
     }
 
+    public void resetHeading(double heading) {
+        this.currentPosition = new Pose2D(
+                this.currentPosition.getX(),
+                this.currentPosition.getY(),
+                heading
+        );
+    }
+
     public void resetTime() {
         this.lastTime = this.elapsedTime.seconds();
     }

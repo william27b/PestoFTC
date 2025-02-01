@@ -87,6 +87,8 @@ public class PathFollower {
     private final double endToleranceR;
     private final double endVelocityTolerance;
     private final double timeAfterDeceleration;
+    private final double killTime;
+    private ElapsedTime killTimer;
     private final ElapsedTime pathTime;
     private boolean completed;
 
@@ -108,6 +110,8 @@ public class PathFollower {
         this.endToleranceR = pathFollowerBuilder.endToleranceR;
         this.endVelocityTolerance = pathFollowerBuilder.endVelocityTolerance;
         this.timeAfterDeceleration = pathFollowerBuilder.timeAfterDeceleration;
+        this.killTime = pathFollowerBuilder.killTime;
+        this.killTimer = null;
         this.pathTime = pathFollowerBuilder.pathTime;
         this.completed = pathFollowerBuilder.completed;
     }
@@ -126,6 +130,7 @@ public class PathFollower {
 
     public void reset() {
         this.decelerating = false;
+        this.killTimer = null;
         pathContainer.reset();
         headingPID.reset();
         endpointPID.reset();
@@ -139,11 +144,17 @@ public class PathFollower {
         if (completed)
             return;
 
+        if (killTimer == null) {
+            killTimer = new ElapsedTime();
+            killTimer.reset();
+        }
+
         if (
                 (isFinished(endToleranceXY, endToleranceR)
                 && (tracker.getRobotVelocity().getMagnitude() < endVelocityTolerance))
                 || (decelerating
                 && (pathTime.seconds() > timeAfterDeceleration))
+                || (killTimer.seconds() > killTime)
         ) {
             completed = true;
             if (finalAction != null) {
@@ -152,11 +163,13 @@ public class PathFollower {
             }
         }
 
+        pathContainer.updateHeading(tracker.getCurrentPosition().getHeadingRadians());
+
         Vector2D robotPosition = tracker.getCurrentPosition().asVector();
         double heading = tracker.getCurrentPosition().getHeadingRadians();
         double rotate = -headingPID.getOutput(heading, normalizeAngle(pathContainer.getHeading(), heading));
 
-        if (decelerating || Vector2D.fastdist(robotPosition, endpoint) < Vector2D.fastdist(predictBrakeStop(tracker.getRobotVelocity().asVector()), Vector2D.ZERO)) {
+        if (decelerating || (pathContainer.getI() == pathContainer.getN() - 1 && Vector2D.fastdist(robotPosition, endpoint) < Vector2D.fastdist(predictBrakeStop(tracker.getRobotVelocity().asVector()), Vector2D.ZERO))) {
             if (!decelerating)
                 pathTime.reset();
             decelerating = true;
@@ -197,6 +210,7 @@ public class PathFollower {
         private double endToleranceR;
         private double endVelocityTolerance;
         private double timeAfterDeceleration;
+        private double killTime;
         private final ElapsedTime pathTime;
         private final boolean completed;
 
@@ -218,6 +232,7 @@ public class PathFollower {
             this.endToleranceR = 0;
             this.endVelocityTolerance = 0;
             this.timeAfterDeceleration = Double.POSITIVE_INFINITY;
+            this.killTime = Double.POSITIVE_INFINITY;
             this.pathTime = new ElapsedTime();
             this.completed = false;
 
@@ -259,6 +274,11 @@ public class PathFollower {
 
         public PathFollowerBuilder setDeceleration(double deceleration) {
             this.deceleration = deceleration;
+            return this;
+        }
+
+        public PathFollowerBuilder setKillTime(double killTime) {
+            this.killTime = killTime;
             return this;
         }
 

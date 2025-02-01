@@ -1,13 +1,10 @@
 package com.shprobotics.pestocore.geometries;
 
-import static org.apache.commons.math3.util.MathUtils.normalizeAngle;
-import static java.lang.Math.abs;
-
 import java.util.ArrayList;
 
 public class PathContainer {
     public final ArrayList<BezierCurve> curves;
-    private final ArrayList<ParametricHeading> headings;
+    public final ArrayList<ParametricHeading> headings;
     private final Vector2D startPosition;
     private Vector2D currentPosition;
     private double heading;
@@ -42,7 +39,11 @@ public class PathContainer {
     }
 
     public Vector2D getEndpoint() {
-        return curves.get(n-1).getPoint(1.0);
+        for (int i = n-1; i >= 0; i--) {
+            if (curves.get(i) != null)
+                return curves.get(i).getPoint(1.0);
+        }
+        return startPosition;
     }
 
     public boolean isFinished() {
@@ -51,6 +52,34 @@ public class PathContainer {
 
     public boolean isExecuted() {
         return executed;
+    }
+
+    private static double distance(double alpha, double beta) {
+        double phi = Math.abs(beta - alpha) % 360; // This is either the distance or 360 - distance
+        return phi > 180 ? 360 - phi : phi;
+    }
+
+    public void updateHeading(double robotHeading) {
+        // currentHeading
+        ParametricHeading currentHeading = headings.get(i);
+
+        if (currentHeading != null) {
+            currentHeading.increment(increment);
+
+            if (heading == currentHeading.getHeading()) {
+                currentHeading.increment(increment);
+            }
+
+            double nextHeading = currentHeading.getHeading();
+
+            while (distance(nextHeading, robotHeading) < distance(heading, robotHeading)) {
+                heading = nextHeading;
+                currentHeading.increment(increment);
+                nextHeading = currentHeading.getHeading();
+            }
+
+            this.heading = nextHeading;
+        }
     }
 
     public Vector2D getNextPosition(Vector2D robotPosition, double robotHeading) {
@@ -89,30 +118,20 @@ public class PathContainer {
             this.currentPosition = currentPosition;
         }
 
-        if (currentHeading != null) {
-            currentHeading.increment(increment);
-
-            if (heading == currentHeading.getHeading()) {
-                currentHeading.increment(increment);
-            }
-
-            double nextHeading = currentHeading.getHeading();
-
-            // TODO: check math
-            while (abs(nextHeading - normalizeAngle(robotHeading, nextHeading)) < abs(heading - normalizeAngle(robotHeading, heading))) {
-                heading = nextHeading;
-                currentHeading.increment(increment);
-                nextHeading = currentHeading.getHeading();
-            }
-
-            this.heading = nextHeading;
-        }
 
         return currentPosition;
     }
 
     public double getHeading() {
         return heading;
+    }
+
+    public int getI() {
+        return i;
+    }
+
+    public int getN() {
+        return n;
     }
 
     public static class PathContainerBuilder {
