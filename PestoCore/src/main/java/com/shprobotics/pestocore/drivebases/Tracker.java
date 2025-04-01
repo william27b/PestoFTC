@@ -6,8 +6,6 @@ public interface Tracker {
     void reset();
     void reset(double heading);
 
-    void resetTime();
-
     void update();
 
     Pose2D getCurrentPosition();

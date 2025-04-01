@@ -3,25 +3,25 @@ package com.shprobotics.pestocore.tuners;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.shprobotics.pestocore.drivebases.DeterministicTracker;
-import com.shprobotics.pestocore.drivebases.MecanumController;
+import com.shprobotics.pestocore.drivebases.DriveController;
 import com.shprobotics.pestocore.drivebases.TeleOpController;
 import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.geometries.Vector2D;
 
 public abstract class LocalizationTuner extends LinearOpMode {
-    public MecanumController mecanumController;
+    public DriveController driveController;
     public DeterministicTracker tracker;
     public TeleOpController teleOpController;
 
-    public abstract void setMecanumController(HardwareMap hardwareMap);
+    public abstract void setDriveController(HardwareMap hardwareMap);
     public abstract void setTracker(HardwareMap hardwareMap);
-    public abstract void setTeleOpController(MecanumController mecanumController, DeterministicTracker tracker, HardwareMap hardwareMap);
+    public abstract void setTeleOpController(DriveController driveController, DeterministicTracker tracker, HardwareMap hardwareMap);
 
     @Override
     public void runOpMode() {
-        setMecanumController(hardwareMap);
+        setDriveController(hardwareMap);
         setTracker(hardwareMap);
-        setTeleOpController(mecanumController, tracker, hardwareMap);
+        setTeleOpController(driveController, tracker, hardwareMap);
 
         waitForStart();
 

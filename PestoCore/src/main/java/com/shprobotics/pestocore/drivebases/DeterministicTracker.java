@@ -7,6 +7,5 @@ public interface DeterministicTracker extends Tracker {
     Pose2D getRobotVelocity();
     Pose2D getDeltaPosition();
 
-    double getCentripetalRadius();
     Vector2D getCentripetalForce();
 }

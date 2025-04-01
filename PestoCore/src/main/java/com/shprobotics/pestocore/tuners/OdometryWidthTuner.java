@@ -3,19 +3,20 @@ package com.shprobotics.pestocore.tuners;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.shprobotics.pestocore.drivebases.DeterministicTracker;
+import com.shprobotics.pestocore.drivebases.DriveController;
 import com.shprobotics.pestocore.drivebases.MecanumController;
 import com.shprobotics.pestocore.drivebases.TeleOpController;
 import com.shprobotics.pestocore.drivebases.ThreeWheelOdometryTracker;
 import com.shprobotics.pestocore.geometries.Pose2D;
 
 public abstract class OdometryWidthTuner extends LinearOpMode {
-    public MecanumController mecanumController;
+    public DriveController driveController;
     public ThreeWheelOdometryTracker tracker;
     public TeleOpController teleOpController;
 
-    public abstract void setMecanumController(HardwareMap hardwareMap);
+    public abstract void setDriveController(HardwareMap hardwareMap);
     public abstract void setTracker(HardwareMap hardwareMap);
-    public abstract void setTeleOpController(MecanumController mecanumController, DeterministicTracker tracker, HardwareMap hardwareMap);
+    public abstract void setTeleOpController(DriveController driveController, DeterministicTracker tracker, HardwareMap hardwareMap);
 
     public double heading;
 
@@ -23,9 +24,9 @@ public abstract class OdometryWidthTuner extends LinearOpMode {
     public void runOpMode() {
         heading = 0.0;
 
-        setMecanumController(hardwareMap);
+        setDriveController(hardwareMap);
         setTracker(hardwareMap);
-        setTeleOpController(mecanumController, tracker, hardwareMap);
+        setTeleOpController(driveController, tracker, hardwareMap);
 
         telemetry.addLine("rotate 10x times counter-clockwise, then press b");
         telemetry.update();

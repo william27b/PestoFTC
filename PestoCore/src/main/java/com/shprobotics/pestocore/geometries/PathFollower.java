@@ -137,7 +137,7 @@ public class PathFollower {
     }
 
     private Vector2D predictBrakeStop(Vector2D velocity) {
-        return Vector2D.scale(velocity, 1 / (2 * deceleration));
+        return Vector2D.scale(Vector2D.square(velocity), -1 / (2 * deceleration));
     }
 
     public void update() {
