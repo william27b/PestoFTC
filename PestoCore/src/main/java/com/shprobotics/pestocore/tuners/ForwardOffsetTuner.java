@@ -1,17 +1,19 @@
 package com.shprobotics.pestocore.tuners;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.shprobotics.pestocore.drivebases.DeterministicTracker;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
+import com.shprobotics.pestocore.processing.FrontalLobe;
 
-public abstract class ForwardOffsetTuner extends LinearOpMode {
+@TeleOp(name = "Forward Offset Tuner", group = "Pesto Tuners")
+public class ForwardOffsetTuner extends LinearOpMode {
     public DeterministicTracker tracker;
-
-    public abstract void setTracker(HardwareMap hardwareMap);
 
     @Override
     public void runOpMode() {
-        setTracker(hardwareMap);
+        FrontalLobe.initialize(hardwareMap);
+
+        tracker = FrontalLobe.tracker;
 
         telemetry.addLine("1. Rotate the robot 180 degrees");
         telemetry.addLine("2. Subtract axis movement from actual movement");

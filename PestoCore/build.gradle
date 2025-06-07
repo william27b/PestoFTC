@@ -5,6 +5,8 @@ plugins {
 
 repositories {
     mavenCentral()
+    mavenLocal()
+    maven { url = 'https://maven.brott.dev/' }
     maven { url = 'https://jitpack.io' }
     maven { url "https://repo.dairy.foundation/releases" }
 }
@@ -33,19 +35,28 @@ android {
 
 dependencies {
     implementation 'org.jetbrains:annotations:24.1.0'
-    implementation "androidx.annotation:annotation:1.7.1"
+    implementation "androidx.annotation:annotation:1.9.1"
 
     implementation 'org.apache.commons:commons-math3:3.6.1'
-    
-    implementation 'org.firstinspires.ftc:RobotCore:9.1.0'
-    implementation 'org.firstinspires.ftc:Hardware:9.1.0'
-    implementation 'org.firstinspires.ftc:FtcCommon:9.1.0'
-    implementation 'org.reflections:reflections:0.10.2'
-    implementation 'org.firstinspires.ftc:Vision:9.0.1'
+
+    implementation 'org.firstinspires.ftc:RobotCore:10.2.0'
+
+    implementation 'org.firstinspires.ftc:Hardware:10.2.0'
+    implementation 'org.firstinspires.ftc:FtcCommon:10.2.0'
+//    implementation 'org.reflections:reflections:0.10.2'
+    implementation 'org.firstinspires.ftc:Vision:10.2.0'
 
     implementation "dev.frozenmilk.dairy:CachingHardware:1.0.0"
 
     implementation 'org.ejml:ejml-all:0.43'
+
+    implementation ('com.acmerobotics.dashboard:dashboard:0.15.0-SNAPSHOT')
+
+//    implementation files('libs/DashboardCore.jar')
+
+//    implementation 'com.acmerobotics.dashboard:dashboard:0.4.10'
+
+//    implementation 'com.github.william27b:ftc-dashboard:pesto-dashboard-v2'
 }
 
 java {

@@ -20,7 +20,7 @@
  *   SOFTWARE.
  */
 
-package com.shprobotics.pestocore.drivebases;
+package com.shprobotics.pestocore.drivebases.trackers;
 
 import static com.qualcomm.robotcore.util.TypeConversion.byteArrayToInt;
 

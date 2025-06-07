@@ -1,37 +1,41 @@
-package com.shprobotics.pestocore.drivebases;
+package com.shprobotics.pestocore.drivebases.trackers;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.shprobotics.pestocore.geometries.Circle;
 import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.geometries.Vector2D;
 
-public class ThreeWheelOdometryTracker implements DeterministicTracker {
-    public final double FORWARD_OFFSET;
-    public final double ODOMETRY_WIDTH;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-    public final Odometry leftOdometry;
+public class TwoWheelOdometryTracker implements DeterministicTracker {
+    private final double FORWARD_OFFSET;
+    private final double ODOMETRY_WIDTH;
+
     public final Odometry rightOdometry;
     public final Odometry centerOdometry;
+    public final IMU imu;
+    public double imuNormal;
 
     private Pose2D robotVelocity;
     private Pose2D positionMinus2;
     private Pose2D positionMinus1;
-    private Pose2D deltaPosition;
     private Pose2D currentPosition;
 
     private final ElapsedTime elapsedTime;
     private double lastTime;
 
-    public ThreeWheelOdometryTracker(TrackerBuilder trackerBuilder) {
+    public TwoWheelOdometryTracker(TrackerBuilder trackerBuilder) {
         this.FORWARD_OFFSET = trackerBuilder.FORWARD_OFFSET;
         this.ODOMETRY_WIDTH = trackerBuilder.ODOMETRY_WIDTH;
 
-        this.leftOdometry = trackerBuilder.leftOdometry;
         this.rightOdometry = trackerBuilder.rightOdometry;
         this.centerOdometry = trackerBuilder.centerOdometry;
+        this.imu = trackerBuilder.imu;
+        this.imuNormal = trackerBuilder.imuNormal;
 
         this.robotVelocity = trackerBuilder.robotVelocity;
         this.positionMinus2 = trackerBuilder.positionMinus2;
@@ -50,16 +54,9 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         this.robotVelocity = new Pose2D(0, 0, 0);
         this.positionMinus2 = new Pose2D(0, 0, 0);
         this.positionMinus1 = new Pose2D(0, 0, 0);
-        this.deltaPosition = new Pose2D(0, 0, 0);
         this.currentPosition = new Pose2D(0, 0, heading);
-    }
 
-    public void resetHeading(double heading) {
-        this.currentPosition = new Pose2D(
-                this.currentPosition.getX(),
-                this.currentPosition.getY(),
-                heading
-        );
+        this.imuNormal = this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + heading;
     }
 
     public void resetTime() {
@@ -67,14 +64,12 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
     }
 
     public void update() {
-        double dL = this.leftOdometry.getInchesTravelled();
         double dC = this.centerOdometry.getInchesTravelled();
-        double dR = this.rightOdometry.getInchesTravelled();
+        double dR = this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) - currentPosition.getHeadingRadians() - imuNormal;
 
-        double distanceRotated = (dL - dR) / 2;
-        double x = dC - (distanceRotated * this.FORWARD_OFFSET);
-        double y = (dL + dR) / 2;
-        double r = - (2 * distanceRotated) / this.ODOMETRY_WIDTH;
+        double x = dC - (dR * this.FORWARD_OFFSET);
+        double y = dC;
+        double r = - (2 * dR) / this.ODOMETRY_WIDTH;
 
         double deltaTime = this.elapsedTime.seconds() - this.lastTime;
         this.lastTime = this.elapsedTime.seconds();
@@ -88,14 +83,12 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         this.positionMinus2 = this.positionMinus1;
         this.positionMinus1 = this.currentPosition;
 
-        this.deltaPosition = new Pose2D(
-                xOriented,
-                yOriented,
-                r
-        );
-
         this.currentPosition.add(
-                deltaPosition
+                new Pose2D(
+                    xOriented,
+                    yOriented,
+                    r
+                )
         );
     }
 
@@ -109,7 +102,7 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
     }
 
     public Pose2D getDeltaPosition() {
-        return deltaPosition;
+        return Pose2D.subtract(this.currentPosition, this.positionMinus1, true);
     }
 
     public double getCentripetalRadius() {
@@ -126,9 +119,10 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         private final double FORWARD_OFFSET;
         private final double ODOMETRY_WIDTH;
 
-        private final Odometry leftOdometry;
         private final Odometry centerOdometry;
         private final Odometry rightOdometry;
+        private final IMU imu;
+        private final double imuNormal;
 
         private final Pose2D robotVelocity;
         private final Pose2D positionMinus2;
@@ -144,22 +138,14 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
                 double FORWARD_OFFSET,
                 double ODOMETRY_WIDTH,
 
-                String leftName,
                 String centerName,
                 String rightName,
 
-                DcMotorSimple.Direction leftDirection,
                 DcMotorSimple.Direction centerDirection,
                 DcMotorSimple.Direction rightDirection
         ) {
             this.FORWARD_OFFSET = FORWARD_OFFSET;
             this.ODOMETRY_WIDTH = ODOMETRY_WIDTH;
-
-            this.leftOdometry = new Odometry(
-                    (DcMotor)hardwareMap.get(leftName),
-                    ODOMETRY_TICKS_PER_INCH);
-
-            this.leftOdometry.setDirection(leftDirection);
 
             this.rightOdometry = new Odometry(
                     (DcMotor)hardwareMap.get(rightName),
@@ -173,7 +159,9 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
 
             this.centerOdometry.setDirection(centerDirection);
 
-            this.leftOdometry.reset();
+            this.imu = (IMU) hardwareMap.get("imu");
+            this.imuNormal = 0.0;
+
             this.rightOdometry.reset();
             this.centerOdometry.reset();
 
@@ -186,8 +174,13 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
             this.lastTime = elapsedTime.seconds();
         }
 
-        public ThreeWheelOdometryTracker build() {
-            return new ThreeWheelOdometryTracker(this);
+        public TwoWheelOdometryTracker.TrackerBuilder setIMUOrientation(IMU.Parameters parameters) {
+            this.imu.initialize(parameters);
+            return this;
+        }
+
+        public TwoWheelOdometryTracker build() {
+            return new TwoWheelOdometryTracker(this);
         }
     }
 }

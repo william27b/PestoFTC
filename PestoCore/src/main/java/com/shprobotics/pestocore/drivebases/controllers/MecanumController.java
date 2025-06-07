@@ -1,31 +1,33 @@
-package com.shprobotics.pestocore.drivebases;
+package com.shprobotics.pestocore.drivebases.controllers;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.shprobotics.pestocore.drivebases.wheels.MecanumWheel;
 import com.shprobotics.pestocore.geometries.Vector2D;
-
-import dev.frozenmilk.dairy.cachinghardware.CachingDcMotorEx;
+import com.shprobotics.pestocore.hardware.CortexLinkedMotor;
 
 public class MecanumController implements DriveController {
-    protected CachingDcMotorEx frontLeft, frontRight, backLeft, backRight;
+//    protected CachingDcMotorEx frontLeft, frontRight, backLeft, backRight;
+    private final MecanumWheel frontLeft, frontRight, backLeft, backRight;
+
     private Vector2D[] powerVectors = new Vector2D[]{new Vector2D(1, 1), new Vector2D(-1, 1), new Vector2D(-1, 1), new Vector2D(1, 1)};
 
     private double driveSpeed = 1;
 
-    public MecanumController(CachingDcMotorEx frontLeft, CachingDcMotorEx frontRight, CachingDcMotorEx backLeft, CachingDcMotorEx backRight) {
-        this.frontLeft = frontLeft;
-        this.frontRight = frontRight;
-        this.backLeft = backLeft;
-        this.backRight = backRight;
+    public MecanumController(CortexLinkedMotor frontLeft, CortexLinkedMotor frontRight, CortexLinkedMotor backLeft, CortexLinkedMotor backRight) {
+        this.frontLeft = new MecanumWheel(frontLeft);
+        this.frontRight = new MecanumWheel(frontRight);
+        this.backLeft = new MecanumWheel(backLeft);
+        this.backRight = new MecanumWheel(backRight);
     }
 
     public MecanumController(HardwareMap hardwareMap, String[] motorNames) {
-        this.frontLeft = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[0]));
-        this.frontRight = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[1]));
-        this.backLeft = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[2]));
-        this.backRight = new CachingDcMotorEx(hardwareMap.get(DcMotorEx.class, motorNames[3]));
+        this.frontLeft = new MecanumWheel(new CortexLinkedMotor(hardwareMap.get(DcMotorEx.class, motorNames[0])));
+        this.frontRight = new MecanumWheel(new CortexLinkedMotor(hardwareMap.get(DcMotorEx.class, motorNames[1])));
+        this.backLeft = new MecanumWheel(new CortexLinkedMotor(hardwareMap.get(DcMotorEx.class, motorNames[2])));
+        this.backRight = new MecanumWheel(new CortexLinkedMotor(hardwareMap.get(DcMotorEx.class, motorNames[3])));
     }
 
     public MecanumController(HardwareMap hardwareMap) {
@@ -103,10 +105,10 @@ public class MecanumController implements DriveController {
 
         double max = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)));
 
-        frontLeft.setPowerResult(frontLeftPower * this.driveSpeed / max);
-        frontRight.setPowerResult(frontRightPower * this.driveSpeed / max);
-        backLeft.setPowerResult(backLeftPower * this.driveSpeed / max);
-        backRight.setPowerResult(backRightPower * this.driveSpeed / max);
+        frontLeft.drive(frontLeftPower * this.driveSpeed / max);
+        frontRight.drive(frontRightPower * this.driveSpeed / max);
+        backLeft.drive(backLeftPower * this.driveSpeed / max);
+        backRight.drive(backRightPower * this.driveSpeed / max);
     }
 
     @Override
@@ -118,9 +120,9 @@ public class MecanumController implements DriveController {
 
         double max = Math.max(1, Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
 
-        frontLeft.setPowerResult(frontLeftPower * this.driveSpeed / max);
-        frontRight.setPowerResult(frontRightPower * this.driveSpeed / max);
-        backLeft.setPowerResult(backLeftPower * this.driveSpeed / max);
-        backRight.setPowerResult(backRightPower * this.driveSpeed / max);
+        frontLeft.drive(frontLeftPower * this.driveSpeed / max);
+        frontRight.drive(frontRightPower * this.driveSpeed / max);
+        backLeft.drive(backLeftPower * this.driveSpeed / max);
+        backRight.drive(backRightPower * this.driveSpeed / max);
     }
 }

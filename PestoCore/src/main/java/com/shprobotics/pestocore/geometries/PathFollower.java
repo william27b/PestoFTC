@@ -4,8 +4,8 @@ import static org.apache.commons.math3.util.MathUtils.normalizeAngle;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.shprobotics.pestocore.algorithms.PID;
-import com.shprobotics.pestocore.drivebases.DeterministicTracker;
-import com.shprobotics.pestocore.drivebases.DriveController;
+import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
+import com.shprobotics.pestocore.drivebases.controllers.DriveController;
 
 public class PathFollower {
     @FunctionalInterface

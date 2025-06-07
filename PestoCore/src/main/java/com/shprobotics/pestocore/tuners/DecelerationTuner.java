@@ -1,13 +1,15 @@
 package com.shprobotics.pestocore.tuners;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.shprobotics.pestocore.drivebases.DeterministicTracker;
-import com.shprobotics.pestocore.drivebases.DriveController;
-import com.shprobotics.pestocore.drivebases.TeleOpController;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.shprobotics.pestocore.drivebases.controllers.DriveController;
+import com.shprobotics.pestocore.drivebases.controllers.TeleOpController;
+import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.geometries.Vector2D;
+import com.shprobotics.pestocore.processing.FrontalLobe;
 
-public abstract class DecelerationTuner extends LinearOpMode {
+@TeleOp(name = "Deceleration Tuner", group = "Pesto Tuners")
+public class DecelerationTuner extends LinearOpMode {
     private Vector2D before;
     private Vector2D velocity;
 
@@ -15,17 +17,15 @@ public abstract class DecelerationTuner extends LinearOpMode {
     public DeterministicTracker tracker;
     public TeleOpController teleOpController;
 
-    public abstract void setDriveController(HardwareMap hardwareMap);
-    public abstract void setTracker(HardwareMap hardwareMap);
-    public abstract void setTeleOpController(DriveController driveController, DeterministicTracker tracker, HardwareMap hardwareMap);
-
     @Override
     public void runOpMode() {
-        waitForStart();
+        FrontalLobe.initialize(hardwareMap);
 
-        setDriveController(hardwareMap);
-        setTracker(hardwareMap);
-        setTeleOpController(driveController, tracker, hardwareMap);
+        driveController = FrontalLobe.driveController;
+        tracker = FrontalLobe.tracker;
+        teleOpController = FrontalLobe.teleOpController;
+
+        waitForStart();
 
         telemetry.addLine("drive at max speed, then press b to get deceleration value");
         telemetry.update();

@@ -1,32 +1,33 @@
 package com.shprobotics.pestocore.tuners;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.shprobotics.pestocore.drivebases.DeterministicTracker;
-import com.shprobotics.pestocore.drivebases.DriveController;
-import com.shprobotics.pestocore.drivebases.MecanumController;
-import com.shprobotics.pestocore.drivebases.TeleOpController;
-import com.shprobotics.pestocore.drivebases.ThreeWheelOdometryTracker;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.shprobotics.pestocore.drivebases.controllers.DriveController;
+import com.shprobotics.pestocore.drivebases.controllers.TeleOpController;
+import com.shprobotics.pestocore.drivebases.trackers.ThreeWheelOdometryTracker;
 import com.shprobotics.pestocore.geometries.Pose2D;
+import com.shprobotics.pestocore.processing.FrontalLobe;
 
-public abstract class OdometryWidthTuner extends LinearOpMode {
+@TeleOp(name = "Odometry Width Tuner", group = "Pesto Tuners")
+public class OdometryWidthTuner extends LinearOpMode {
     public DriveController driveController;
     public ThreeWheelOdometryTracker tracker;
     public TeleOpController teleOpController;
-
-    public abstract void setDriveController(HardwareMap hardwareMap);
-    public abstract void setTracker(HardwareMap hardwareMap);
-    public abstract void setTeleOpController(DriveController driveController, DeterministicTracker tracker, HardwareMap hardwareMap);
 
     public double heading;
 
     @Override
     public void runOpMode() {
+        FrontalLobe.initialize(hardwareMap);
+
         heading = 0.0;
 
-        setDriveController(hardwareMap);
-        setTracker(hardwareMap);
-        setTeleOpController(driveController, tracker, hardwareMap);
+        driveController = FrontalLobe.driveController;
+
+        assert FrontalLobe.tracker instanceof ThreeWheelOdometryTracker;
+        tracker = (ThreeWheelOdometryTracker) FrontalLobe.tracker;
+
+        teleOpController = FrontalLobe.teleOpController;
 
         telemetry.addLine("rotate 10x times counter-clockwise, then press b");
         telemetry.update();
@@ -43,7 +44,7 @@ public abstract class OdometryWidthTuner extends LinearOpMode {
             teleOpController.updateSpeed(gamepad1);
         }
 
-        mecanumController.drive(0, 0, 0);
+        driveController.drive(0, 0, 0);
 
         while (opModeIsActive() && !isStopRequested()) {
             tracker.update();

@@ -1,30 +1,41 @@
 package com.shprobotics.pestocore.tuners;
 
+import com.acmerobotics.dashboard.config.variable.DataItem;
+import com.acmerobotics.dashboard.config.variable.NumericalSelector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.shprobotics.pestocore.drivebases.DeterministicTracker;
-import com.shprobotics.pestocore.drivebases.DriveController;
+import com.shprobotics.pestocore.drivebases.controllers.DriveController;
+import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
+import com.shprobotics.pestocore.processing.FrontalLobe;
+import com.shprobotics.pestocore.processing.PestoTelemetry;
 
 import java.util.ArrayList;
 
-public abstract class ForwardDecelerationTuner extends LinearOpMode {
+@TeleOp(name = "Forward Deceleration Tuner", group = "Pesto Tuners")
+public class ForwardDecelerationTuner extends LinearOpMode {
     private ArrayList<Double> accelerations = new ArrayList<>();
 
     protected DeterministicTracker tracker;
     protected DriveController driveController;
 
-    protected double targetVelocity;
+    public static double targetVelocity = 30.0;
     private boolean stopping;
-
-    public abstract void setTracker();
-    public abstract void setDriveController();
-    public abstract void setTargetVelocity();
 
     @Override
     public void runOpMode() {
-        setTracker();
-        setDriveController();
-        setTargetVelocity();
+        FrontalLobe.initialize(hardwareMap);
+        PestoTelemetry pestoTelemetry = FrontalLobe.pestoTelemetry;
+
+        NumericalSelector targetVelocitySelector = new NumericalSelector("targetVelocity", 30.0, 0.0, 60.0);
+        targetVelocitySelector.setColor(DataItem.MessageColor.INFO);
+        targetVelocitySelector.setUnit("inches / s");
+
+        pestoTelemetry.addToDash(targetVelocitySelector);
+        pestoTelemetry.update();
+
+        driveController = FrontalLobe.driveController;
+        tracker = FrontalLobe.tracker;
 
         driveController.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 

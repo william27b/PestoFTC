@@ -1,30 +1,30 @@
 package com.shprobotics.pestocore.tuners;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.shprobotics.pestocore.drivebases.DeterministicTracker;
-import com.shprobotics.pestocore.drivebases.DriveController;
+import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
+import com.shprobotics.pestocore.drivebases.controllers.DriveController;
+import com.shprobotics.pestocore.processing.FrontalLobe;
 
 import java.util.ArrayList;
 
-public abstract class StrafeDecelerationTuner extends LinearOpMode {
+@TeleOp(name = "Strafe Deceleration Tuner", group = "Pesto Tuners")
+public class StrafeDecelerationTuner extends LinearOpMode {
     private ArrayList<Double> accelerations = new ArrayList<>();
 
     protected DeterministicTracker tracker;
     protected DriveController driveController;
 
-    protected double targetVelocity;
+    public double targetVelocity = 30.0;
     private boolean stopping;
-
-    public abstract void setTracker();
-    public abstract void setDriveController();
-    public abstract void setTargetVelocity();
 
     @Override
     public void runOpMode() {
-        setTracker();
-        setDriveController();
-        setTargetVelocity();
+        FrontalLobe.initialize(hardwareMap);
+
+        driveController = FrontalLobe.driveController;
+        tracker = FrontalLobe.tracker;
 
         driveController.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
