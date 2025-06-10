@@ -50,25 +50,8 @@ public class TelemetryTest extends LinearOpMode {
 
         waitForStart();
 
-        long lastNano = 0;
-
         while (opModeIsActive()) {
             pestoTelemetry.update();
-
-//            double refreshTime = (System.nanoTime() - lastNano) / 1E9;
-//            lastNano = System.nanoTime();
-//
-//            NumericalData hertz = new NumericalData("Refresh time", refreshTime);
-//            hertz.setUnit("seconds");
-//            hertz.setColor(DataItem.MessageColor.NEGATIVE);
-//
-//            NumericalData fps = new NumericalData("fps", 1 / refreshTime);
-//            fps.setUnit("frames / s");
-//            fps.setColor(DataItem.MessageColor.POSITIVE);
-//
-//            pestoTelemetry.addToDash(hertz);
-//            pestoTelemetry.addToDash(fps);
-//            pestoTelemetry.update();
         }
     }
 }

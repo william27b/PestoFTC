@@ -5,9 +5,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    mavenLocal()
-    maven { url = 'https://maven.brott.dev/' }
-    maven { url = 'https://jitpack.io' }
     maven { url "https://repo.dairy.foundation/releases" }
 }
 
@@ -50,13 +47,8 @@ dependencies {
 
     implementation 'org.ejml:ejml-all:0.43'
 
-    implementation ('com.acmerobotics.dashboard:dashboard:0.15.0-SNAPSHOT')
-
-//    implementation files('libs/DashboardCore.jar')
-
-//    implementation 'com.acmerobotics.dashboard:dashboard:0.4.10'
-
-//    implementation 'com.github.william27b:ftc-dashboard:pesto-dashboard-v2'
+    implementation 'io.github.william27b:dashboard:0.15.01'
+    implementation 'io.github.william27b:core:0.15.01'
 }
 
 java {
