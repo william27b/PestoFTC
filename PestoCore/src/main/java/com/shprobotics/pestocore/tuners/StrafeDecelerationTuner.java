@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.drivebases.controllers.DriveController;
 import com.shprobotics.pestocore.processing.FrontalLobe;
+import com.shprobotics.pestocore.processing.MotorCortex;
 
 import java.util.ArrayList;
 
@@ -43,6 +44,7 @@ public class StrafeDecelerationTuner extends LinearOpMode {
         driveController.drive(0, 1, 0);
 
         while (opModeIsActive() && !isStopRequested()) {
+            MotorCortex.update();
             if (gamepad1.a) {
                 driveController.drive(0, 0, 0);
                 driveController.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

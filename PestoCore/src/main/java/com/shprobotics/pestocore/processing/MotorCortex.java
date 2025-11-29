@@ -1,8 +1,5 @@
 package com.shprobotics.pestocore.processing;
 
-import com.acmerobotics.dashboard.message.MessageCache;
-import com.acmerobotics.dashboard.message.redux.CachableMessage;
-import com.acmerobotics.dashboard.message.redux.SetMotor;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -28,6 +25,8 @@ public class MotorCortex {
 
     public static void initialize(HardwareMap hardwareMap) {
         motors = new ArrayList<>();
+        servos = new ArrayList<>();
+        crServos = new ArrayList<>();
 
         MotorCortex.hardwareMap = hardwareMap;
 
@@ -102,27 +101,6 @@ public class MotorCortex {
     public static void disableMotors() {
         for (CortexLinkedMotor motor: motors)
             motor.setPowerResult(0);
-    }
-
-    public static void setMotors() {
-        int i = 0;
-
-        while (i < MessageCache.getSize()) {
-            CachableMessage command = MessageCache.getElement(i);
-            i++;
-
-            if (!(command instanceof SetMotor))
-                continue;
-
-            SetMotor setMotorCommand = (SetMotor) command;
-
-            for (CortexLinkedMotor motor: motors) {
-                // this getname function is jank
-                if (setMotorCommand.getName().equals(motor.getName())) {
-                    motor.setPowerResult(setMotorCommand.getPower());
-                }
-            }
-        }
     }
 
     public static void update() {

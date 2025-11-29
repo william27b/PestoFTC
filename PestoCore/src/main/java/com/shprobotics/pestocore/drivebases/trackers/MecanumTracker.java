@@ -53,6 +53,13 @@ public class MecanumTracker implements DeterministicTracker {
         this.currentPosition = new Pose2D(0, 0, heading);
     }
 
+    public void reset(Pose2D position) {
+        this.robotVelocity = new Pose2D(0, 0, 0);
+        this.positionMinus2 = new Pose2D(0, 0, 0);
+        this.positionMinus1 = new Pose2D(0, 0, 0);
+        this.currentPosition = position;
+    }
+
     public void resetTime() {
         this.lastTime = this.elapsedTime.seconds();
     }

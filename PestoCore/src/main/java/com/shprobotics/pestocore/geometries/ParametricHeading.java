@@ -29,6 +29,10 @@ public class ParametricHeading {
             return headings[n-1];
         }
 
+        if (headings.length == 2) {
+            return (headings[1] * t) + (headings[0] * (1 - t));
+        }
+
         double point = 0.0;
 
         double n_factorial = 1;

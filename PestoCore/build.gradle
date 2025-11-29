@@ -4,6 +4,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url "https://repo.dairy.foundation/releases" }
 }
@@ -47,8 +48,8 @@ dependencies {
 
     implementation 'org.ejml:ejml-all:0.43'
 
-    implementation 'io.github.william27b:dashboard:0.15.02'
-    implementation 'io.github.william27b:core:0.15.02'
+    implementation 'io.github.william27b:dashboard:0.15.03'
+    implementation 'io.github.william27b:core:0.15.03'
 }
 
 java {

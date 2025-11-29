@@ -5,6 +5,7 @@ import com.shprobotics.pestocore.geometries.Pose2D;
 public interface Tracker {
     void reset();
     void reset(double heading);
+    void reset(Pose2D position);
 
     void update();
 

@@ -33,6 +33,7 @@ public class PestoTelemetry {
     }
 
     public void update() {
-        PestoDashCore.update();
+        PestoDashCore.updateDash();
+        PestoDashCore.updateItems();
     }
 }

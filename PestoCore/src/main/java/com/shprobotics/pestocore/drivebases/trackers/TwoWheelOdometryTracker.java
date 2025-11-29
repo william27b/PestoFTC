@@ -12,8 +12,8 @@ import com.shprobotics.pestocore.geometries.Vector2D;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 public class TwoWheelOdometryTracker implements DeterministicTracker {
-    private final double FORWARD_OFFSET;
-    private final double ODOMETRY_WIDTH;
+    public final double FORWARD_OFFSET;
+    public final double ODOMETRY_WIDTH;
 
     public final Odometry rightOdometry;
     public final Odometry centerOdometry;
@@ -57,6 +57,15 @@ public class TwoWheelOdometryTracker implements DeterministicTracker {
         this.currentPosition = new Pose2D(0, 0, heading);
 
         this.imuNormal = this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + heading;
+    }
+
+    public void reset(Pose2D position) {
+        this.robotVelocity = new Pose2D(0, 0, 0);
+        this.positionMinus2 = new Pose2D(0, 0, 0);
+        this.positionMinus1 = new Pose2D(0, 0, 0);
+        this.currentPosition = position;
+
+        this.imuNormal = this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS) + position.getHeadingRadians();
     }
 
     public void resetTime() {

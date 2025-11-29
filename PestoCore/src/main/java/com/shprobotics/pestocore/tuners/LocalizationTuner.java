@@ -8,6 +8,7 @@ import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.geometries.Pose2D;
 import com.shprobotics.pestocore.geometries.Vector2D;
 import com.shprobotics.pestocore.processing.FrontalLobe;
+import com.shprobotics.pestocore.processing.MotorCortex;
 
 @TeleOp(name = "Localization Tuner", group = "Pesto Tuners")
 public class LocalizationTuner extends LinearOpMode {
@@ -23,9 +24,12 @@ public class LocalizationTuner extends LinearOpMode {
         tracker = FrontalLobe.tracker;
         teleOpController = FrontalLobe.teleOpController;
 
+        tracker.reset();
+
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
+            MotorCortex.update();
             teleOpController.driveRobotCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
             tracker.update();
 

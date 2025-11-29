@@ -31,7 +31,14 @@ public class PathContainer {
 
     public void reset() {
         for (BezierCurve curve: curves) {
+            if (curve == null)
+                continue;
             curve.reset();
+        }
+        for (ParametricHeading heading: headings) {
+            if (heading == null)
+                continue;
+            heading.reset();
         }
         this.currentPosition = this.startPosition.copy();
         executed = false;
@@ -47,7 +54,13 @@ public class PathContainer {
     }
 
     public boolean isFinished() {
-        return curves.get(i).getT() == 1;
+        boolean finished = true;
+        for (BezierCurve curve: curves) {
+            if (curve == null)
+                continue;
+            finished = curve.getT() == 1.0;
+        }
+        return finished;
     }
 
     public boolean isExecuted() {

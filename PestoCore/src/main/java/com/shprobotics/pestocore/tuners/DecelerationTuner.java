@@ -7,6 +7,7 @@ import com.shprobotics.pestocore.drivebases.controllers.TeleOpController;
 import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.geometries.Vector2D;
 import com.shprobotics.pestocore.processing.FrontalLobe;
+import com.shprobotics.pestocore.processing.MotorCortex;
 
 @TeleOp(name = "Deceleration Tuner", group = "Pesto Tuners")
 public class DecelerationTuner extends LinearOpMode {
@@ -31,6 +32,7 @@ public class DecelerationTuner extends LinearOpMode {
         telemetry.update();
 
         while (opModeIsActive() && !isStopRequested() && !gamepad1.b) {
+            MotorCortex.update();
             teleOpController.driveRobotCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
             tracker.update();
             teleOpController.updateSpeed(gamepad1);
@@ -41,6 +43,7 @@ public class DecelerationTuner extends LinearOpMode {
         driveController.drive(0, 0, 0);
 
         while (opModeIsActive() && !isStopRequested()) {
+            MotorCortex.update();
             tracker.update();
             telemetry.addData("deceleration", velocity.getMagnitude() / (2 * Vector2D.dist(before, tracker.getCurrentPosition().asVector())));
             telemetry.addData("max velocity", velocity.getMagnitude());

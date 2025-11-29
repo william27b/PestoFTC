@@ -157,8 +157,8 @@ public class PathFollower {
                 || (killTimer.seconds() > killTime)
         ) {
             completed = true;
+            driveController.drive(0, 0, 0);
             if (finalAction != null) {
-                driveController.drive(0, 0, 0);
                 finalAction.run();
             }
         }
@@ -190,7 +190,7 @@ public class PathFollower {
         strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
         forward = temp;
 
-        driveController.drive(forward, strafe, rotate);
+        driveController.overdrive(forward, strafe, rotate);
     }
 
     public static class PathFollowerBuilder {

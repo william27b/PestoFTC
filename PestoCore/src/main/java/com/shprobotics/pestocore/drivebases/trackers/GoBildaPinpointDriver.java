@@ -492,8 +492,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      */
     public Pose2D getPosition(){
         return new Pose2D(
-                xPosition,
                 yPosition,
+                xPosition,
                 hOrientation
         );
     }
@@ -505,8 +505,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      */
     public Pose2D getVelocity(){
         return new Pose2D(
-                xVelocity,
                 yVelocity,
+                xVelocity,
                 hVelocity
         );
     }

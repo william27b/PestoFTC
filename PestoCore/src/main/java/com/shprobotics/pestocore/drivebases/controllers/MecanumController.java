@@ -10,7 +10,7 @@ import com.shprobotics.pestocore.hardware.CortexLinkedMotor;
 
 public class MecanumController implements DriveController {
 //    protected CachingDcMotorEx frontLeft, frontRight, backLeft, backRight;
-    private final MecanumWheel frontLeft, frontRight, backLeft, backRight;
+    public final MecanumWheel frontLeft, frontRight, backLeft, backRight;
 
     private Vector2D[] powerVectors = new Vector2D[]{new Vector2D(1, 1), new Vector2D(-1, 1), new Vector2D(-1, 1), new Vector2D(1, 1)};
 

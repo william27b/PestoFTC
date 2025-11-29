@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.shprobotics.pestocore.hardware.CortexLinkedMotor;
 
 public class MecanumWheel implements Wheel {
-    private final CortexLinkedMotor motor;
+    public final CortexLinkedMotor motor;
 
     private double accelerationMax = Double.POSITIVE_INFINITY;
     private double currentVelocity = 0.0;

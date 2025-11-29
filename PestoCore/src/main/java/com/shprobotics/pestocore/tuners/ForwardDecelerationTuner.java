@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.shprobotics.pestocore.drivebases.controllers.DriveController;
 import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.processing.FrontalLobe;
+import com.shprobotics.pestocore.processing.MotorCortex;
 import com.shprobotics.pestocore.processing.PestoTelemetry;
 
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class ForwardDecelerationTuner extends LinearOpMode {
         driveController.drive(1, 0, 0);
 
         while (opModeIsActive() && !isStopRequested()) {
+            MotorCortex.update();
             if (gamepad1.a) {
                 driveController.drive(0, 0, 0);
                 driveController.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

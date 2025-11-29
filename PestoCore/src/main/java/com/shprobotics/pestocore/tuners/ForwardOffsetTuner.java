@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.processing.FrontalLobe;
+import com.shprobotics.pestocore.processing.MotorCortex;
 
 @TeleOp(name = "Forward Offset Tuner", group = "Pesto Tuners")
 public class ForwardOffsetTuner extends LinearOpMode {
@@ -25,6 +26,7 @@ public class ForwardOffsetTuner extends LinearOpMode {
 
         tracker.reset();
         while (opModeIsActive() && !isStopRequested()) {
+            MotorCortex.update();
             tracker.update();
 
             telemetry.addLine("1. Rotate the robot 180 degrees");

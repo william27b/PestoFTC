@@ -85,6 +85,10 @@ public class TeleOpController {
         this.angleOffset = -this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
     }
 
+    public void resetIMU(double offset) {
+        this.angleOffset = offset - this.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+    }
+
     public void updateSpeed(Gamepad gamepad) {
         if (speedController != null) {
             this.driveController.setDriveSpeed(speedController.apply(gamepad));
