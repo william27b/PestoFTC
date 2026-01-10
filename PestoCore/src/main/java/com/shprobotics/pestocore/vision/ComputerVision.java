@@ -1,6 +1,6 @@
 package com.shprobotics.pestocore.vision;
 
-import com.shprobotics.pestocore.geometries.Pose2D;
+import com.shprobotics.pestocore.geometries.Pose;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -48,7 +48,7 @@ public class ComputerVision {
         return output;
     }
 
-    public static Pose2D getPose(Mat input) {
+    public static Pose getPose(Mat input) {
         Moments moments = Imgproc.moments(input);
 
         double x = moments.get_m10() / moments.get_m00();
@@ -72,6 +72,6 @@ public class ComputerVision {
 //        % Orientation (radians)
 //        E.theta = 1/2*atan(b/(a-c)) + (a<c)*pi/2;
 
-        return new Pose2D(x, y, theta);
+        return new Pose(x, y, theta);
     }
 }

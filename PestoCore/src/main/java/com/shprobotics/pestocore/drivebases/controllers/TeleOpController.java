@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
-import com.shprobotics.pestocore.geometries.Vector2D;
+import com.shprobotics.pestocore.geometries.Pose;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
@@ -22,7 +22,7 @@ public class TeleOpController {
 
     private boolean counteractCentripetalForce = false;
     private DeterministicTracker tracker;
-    private double MAX_VELOCITY;
+    private double MAX_FORCE;
 
     public TeleOpController(DriveController driveController, HardwareMap hardwareMap) {
         this.driveController = driveController;
@@ -36,10 +36,10 @@ public class TeleOpController {
         this.angleOffset = 0;
     }
 
-    public void counteractCentripetalForce(DeterministicTracker tracker, double MAX_VELOCITY) {
+    public void counteractCentripetalForce(DeterministicTracker tracker, double MAX_FORCE) {
         this.counteractCentripetalForce = true;
         this.tracker = tracker;
-        this.MAX_VELOCITY = MAX_VELOCITY;
+        this.MAX_FORCE = MAX_FORCE;
     }
 
     public void deactivateCentripetalForce() {
@@ -97,8 +97,8 @@ public class TeleOpController {
 
     public void driveRobotCentric(double forward, double strafe, double rotate) {
         if (counteractCentripetalForce) {
-            Vector2D centripetalForce = tracker.getCentripetalForce();
-            centripetalForce.scale(1 / MAX_VELOCITY);
+            Pose centripetalForce = tracker.getCentripetalForce();
+            centripetalForce.scale(1 / MAX_FORCE);
 
             forward += centripetalForce.getY();
             strafe += centripetalForce.getX();

@@ -31,7 +31,7 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchSimple;
 import com.qualcomm.robotcore.hardware.configuration.annotations.DeviceProperties;
 import com.qualcomm.robotcore.hardware.configuration.annotations.I2cDeviceType;
 import com.qualcomm.robotcore.util.TypeConversion;
-import com.shprobotics.pestocore.geometries.Pose2D;
+import com.shprobotics.pestocore.geometries.Pose;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -382,7 +382,7 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * relative to that new, more accurate position.
      * @param pos a Pose2D describing the robot's new position.
      */
-    public Pose2D setPosition(Pose2D pos){
+    public Pose setPosition(Pose pos){
         writeByteArray(Register.X_POSITION,(floatToByteArray((float) pos.getX(), ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.Y_POSITION,(floatToByteArray((float) pos.getY(),ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.H_ORIENTATION,(floatToByteArray((float) pos.getHeadingRadians(),ByteOrder.LITTLE_ENDIAN)));
@@ -490,8 +490,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
     /**
      * @return a Pose2D containing the estimated position of the robot
      */
-    public Pose2D getPosition(){
-        return new Pose2D(
+    public Pose getPosition(){
+        return new Pose(
                 yPosition,
                 xPosition,
                 hOrientation
@@ -503,8 +503,8 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
     /**
      * @return a Pose2D containing the estimated velocity of the robot, velocity is unit per second
      */
-    public Pose2D getVelocity(){
-        return new Pose2D(
+    public Pose getVelocity(){
+        return new Pose(
                 yVelocity,
                 xVelocity,
                 hVelocity

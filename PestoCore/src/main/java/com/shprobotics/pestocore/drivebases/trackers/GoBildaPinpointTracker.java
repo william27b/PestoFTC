@@ -1,15 +1,14 @@
 package com.shprobotics.pestocore.drivebases.trackers;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.shprobotics.pestocore.geometries.Pose2D;
-import com.shprobotics.pestocore.geometries.Vector2D;
+import com.shprobotics.pestocore.geometries.Pose;
 
 public class GoBildaPinpointTracker implements DeterministicTracker {
     GoBildaPinpointDriver goBildaPinpointDriver;
 
-    private Pose2D currentPosition;
-    private Pose2D deltaPosition;
-    private Pose2D robotVelocity;
+    private Pose currentPosition;
+    private Pose deltaPosition;
+    private Pose robotVelocity;
 
     public final double FORWARD_OFFSET;
     public final double ODOMETRY_WIDTH;
@@ -25,25 +24,25 @@ public class GoBildaPinpointTracker implements DeterministicTracker {
         this.ODOMETRY_WIDTH = trackerBuilder.odometryWidth;
     }
 
-    public Pose2D getRobotVelocity() {
+    public Pose getRobotVelocity() {
         return robotVelocity;
     }
 
-    public Pose2D getDeltaPosition() {
+    public Pose getDeltaPosition() {
         return deltaPosition;
     }
 
-    public Vector2D getCentripetalForce() {
-        return Vector2D.ZERO;
+    public Pose getCentripetalForce() {
+        return Pose.ZERO;
     }
 
     public void reset() {
         goBildaPinpointDriver.resetPosAndIMU();
         goBildaPinpointDriver.recalibrateIMU();
 
-        this.currentPosition = new Pose2D(0, 0, 0);
-        this.deltaPosition = new Pose2D(0, 0, 0);
-        this.robotVelocity = new Pose2D(0, 0, 0);
+        this.currentPosition = new Pose(0, 0, 0);
+        this.deltaPosition = new Pose(0, 0, 0);
+        this.robotVelocity = new Pose(0, 0, 0);
     }
 
     public void reset(double heading) {
@@ -51,7 +50,7 @@ public class GoBildaPinpointTracker implements DeterministicTracker {
         goBildaPinpointDriver.setYawScalar(heading);
     }
 
-    public void reset(Pose2D position) {
+    public void reset(Pose position) {
         reset();
         goBildaPinpointDriver.setYawScalar(position.getHeadingRadians());
         this.currentPosition = position;
@@ -60,22 +59,24 @@ public class GoBildaPinpointTracker implements DeterministicTracker {
     public void update() {
         goBildaPinpointDriver.update();
 
-        deltaPosition = Pose2D.subtract(goBildaPinpointDriver.getPosition(), currentPosition, true);
+        deltaPosition = Pose.subtract(goBildaPinpointDriver.getPosition(), currentPosition);
+        deltaPosition.normalizeHeading();
+
         currentPosition = goBildaPinpointDriver.getPosition();
 
         robotVelocity = goBildaPinpointDriver.getVelocity();
     }
 
-    public Pose2D getCurrentPosition() {
+    public Pose getCurrentPosition() {
         return currentPosition;
     }
 
     public static class TrackerBuilder implements Tracker.TrackerBuilder {
         GoBildaPinpointDriver goBildaPinpointDriver;
 
-        Pose2D currentPosition;
-        Pose2D deltaPosition;
-        Pose2D robotVelocity;
+        Pose currentPosition;
+        Pose deltaPosition;
+        Pose robotVelocity;
 
         GoBildaPinpointDriver.EncoderDirection xDirection;
         GoBildaPinpointDriver.EncoderDirection yDirection;
@@ -90,9 +91,9 @@ public class GoBildaPinpointTracker implements DeterministicTracker {
         ) {
             this.goBildaPinpointDriver = hardwareMap.get(GoBildaPinpointDriver.class, deviceName);
 
-            this.currentPosition = new Pose2D(0, 0, 0);
-            this.deltaPosition = new Pose2D(0, 0, 0);
-            this.robotVelocity = new Pose2D(0, 0, 0);
+            this.currentPosition = new Pose(0, 0, 0);
+            this.deltaPosition = new Pose(0, 0, 0);
+            this.robotVelocity = new Pose(0, 0, 0);
 
             this.xDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;
             this.yDirection = GoBildaPinpointDriver.EncoderDirection.FORWARD;

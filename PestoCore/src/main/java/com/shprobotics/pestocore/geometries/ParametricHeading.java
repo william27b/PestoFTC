@@ -1,15 +1,11 @@
 package com.shprobotics.pestocore.geometries;
 
 public class ParametricHeading {
-    private final double[] headings;
-    private final int n;
+    private LambdaHeading lambdaHeading;
     private double t;
 
-    public ParametricHeading(double[] headings) {
-        assert headings.length >= 2;
-
-        this.headings = headings;
-        this.n = headings.length;
+    public ParametricHeading(LambdaHeading lambdaHeading) {
+        this.lambdaHeading = lambdaHeading;
         this.t = 0;
     }
 
@@ -22,37 +18,7 @@ public class ParametricHeading {
     }
 
     public double getHeading(double t) {
-        if (t == 0) {
-            return headings[0];
-        }
-        if (t == 1) {
-            return headings[n-1];
-        }
-
-        if (headings.length == 2) {
-            return (headings[1] * t) + (headings[0] * (1 - t));
-        }
-
-        double point = 0.0;
-
-        double n_factorial = 1;
-        for (int i = 1; i < n; i++) {
-            n_factorial *= i;
-        }
-        double i_factorial = 1;
-        double n_minus_i_factorial = n_factorial * n;
-
-        for (int i = 0; i < n; i++) {
-            n_minus_i_factorial /= (n - i);
-
-            double copy = headings[i];
-            copy *= ((n_factorial / (i_factorial * n_minus_i_factorial)) * Math.pow(1 - t, n - i - 1) * Math.pow(t, i));
-
-            i_factorial *= i + 1;
-            point += copy;
-        }
-
-        return point;
+        return lambdaHeading.getHeading(t);
     }
 
     public double getHeading() {

@@ -1,7 +1,7 @@
 package com.shprobotics.pestocore.geometries;
 
 public class Circle {
-    public static double getRadius(Vector2D point1, Vector2D point2, Vector2D point3) {
+    public static double getRadius(Pose point1, Pose point2, Pose point3) {
         double sign = Math.signum(point1.getY() - ((point3.getY() - point2.getY()) * point1.getX() / (point3.getX() - point2.getX()) + point2.getY() - (point3.getY() - point2.getY()) * point2.getX() / (point3.getX() - point2.getX())));
 
         double x12 = (point1.getX() + point2.getX()) / 2;
@@ -41,11 +41,11 @@ public class Circle {
             y = d12 * (x12 - x) + y12;
         }
 
-        Vector2D center = new Vector2D(
+        Pose center = new Pose(
                 x,
                 y
         );
 
-        return Vector2D.dist(center, point1) * sign;
+        return Pose.dist(center, point1) * sign;
     }
 }

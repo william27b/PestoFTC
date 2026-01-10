@@ -5,16 +5,17 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.shprobotics.pestocore.drivebases.wheels.MecanumWheel;
-import com.shprobotics.pestocore.geometries.Vector2D;
+import com.shprobotics.pestocore.geometries.Pose;
 import com.shprobotics.pestocore.hardware.CortexLinkedMotor;
 
 public class MecanumController implements DriveController {
-//    protected CachingDcMotorEx frontLeft, frontRight, backLeft, backRight;
+    //    protected CachingDcMotorEx frontLeft, frontRight, backLeft, backRight;
     public final MecanumWheel frontLeft, frontRight, backLeft, backRight;
 
-    private Vector2D[] powerVectors = new Vector2D[]{new Vector2D(1, 1), new Vector2D(-1, 1), new Vector2D(-1, 1), new Vector2D(1, 1)};
+    private Pose[] powerVectors = new Pose[]{new Pose(1, 1), new Pose(-1, 1), new Pose(-1, 1), new Pose(1, 1)};
 
     private double driveSpeed = 1;
+    private double staticPower = 0.0;
 
     public MecanumController(CortexLinkedMotor frontLeft, CortexLinkedMotor frontRight, CortexLinkedMotor backLeft, CortexLinkedMotor backRight) {
         this.frontLeft = new MecanumWheel(frontLeft);
@@ -32,6 +33,10 @@ public class MecanumController implements DriveController {
 
     public MecanumController(HardwareMap hardwareMap) {
         this(hardwareMap, new String[]{"frontLeft", "frontRight", "backLeft", "backRight"});
+    }
+
+    public void setStaticPower(double staticPower) {
+        this.staticPower = staticPower;
     }
 
     public void setCachingTolerance(double cachingTolerance) {
@@ -73,12 +78,12 @@ public class MecanumController implements DriveController {
         backRight.setZeroPowerBehavior(zeroPowerBehavior);
     }
 
-    public void setPowerVectors(Vector2D[] powerVectors) {
+    public void setPowerVectors(Pose[] powerVectors) {
         this.powerVectors = powerVectors;
     }
 
-    public void setPowerVectors(Vector2D frontLeftVector, Vector2D frontRightVector, Vector2D backLeftVector, Vector2D backRightVector) {
-        this.powerVectors = new Vector2D[]{frontLeftVector, frontRightVector, backLeftVector, backRightVector};
+    public void setPowerVectors(Pose frontLeftVector, Pose frontRightVector, Pose backLeftVector, Pose backRightVector) {
+        this.powerVectors = new Pose[]{frontLeftVector, frontRightVector, backLeftVector, backRightVector};
     }
 
     @Override
@@ -103,6 +108,11 @@ public class MecanumController implements DriveController {
         double backLeftPower = (powerVectors[2].getY() * forward) + (powerVectors[2].getX() * strafe) + rotate;
         double backRightPower = (powerVectors[3].getY() * forward) + (powerVectors[3].getX() * strafe) - rotate;
 
+        frontLeftPower += staticPower * Math.signum(frontLeftPower);
+        frontRightPower += staticPower * Math.signum(frontRightPower);
+        backLeftPower += staticPower * Math.signum(backLeftPower);
+        backRightPower += staticPower * Math.signum(backRightPower);
+
         double max = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)));
 
         frontLeft.drive(frontLeftPower * this.driveSpeed / max);
@@ -117,6 +127,11 @@ public class MecanumController implements DriveController {
         double frontRightPower = (powerVectors[1].getY() * forward) + (powerVectors[1].getX() * strafe) - rotate;
         double backLeftPower = (powerVectors[2].getY() * forward) + (powerVectors[2].getX() * strafe) + rotate;
         double backRightPower = (powerVectors[3].getY() * forward) + (powerVectors[3].getX() * strafe) - rotate;
+
+        frontLeftPower += staticPower * Math.signum(frontLeftPower);
+        frontRightPower += staticPower * Math.signum(frontRightPower);
+        backLeftPower += staticPower * Math.signum(backLeftPower);
+        backRightPower += staticPower * Math.signum(backRightPower);
 
         double max = Math.max(1, Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
 

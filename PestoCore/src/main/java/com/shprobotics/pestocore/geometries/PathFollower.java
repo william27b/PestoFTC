@@ -10,36 +10,11 @@ import com.shprobotics.pestocore.drivebases.controllers.DriveController;
 public class PathFollower {
     @FunctionalInterface
     public interface DecelerationFunction {
-        Vector2D decelerate(PathFollower pathFollower, double rotate);
+        Pose decelerate(PathFollower pathFollower, double rotate);
     }
 
-    public static final DecelerationFunction SQUID_DECELERATION = (PathFollower pathFollower, double heading) -> {
-        Vector2D vectorToEndpoint = Vector2D.subtract(pathFollower.endpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
-        double forward = vectorToEndpoint.getY();
-        double strafe = vectorToEndpoint.getX();
-
-        double temp = forward * Math.cos(heading) + strafe * Math.sin(-heading);
-        strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
-        forward = temp;
-
-        // reconsider
-        double drivePower = pathFollower.endpointPID.getOutput(pathFollower.tracker.getCurrentPosition().getMagnitude(), pathFollower.endpoint.getMagnitude());
-
-        // SQUID
-        drivePower = Math.sqrt(drivePower);
-
-        Vector2D drive = new Vector2D(
-                forward,
-                strafe
-        );
-
-        drive.scale(drivePower);
-
-        return drive;
-    };
-
     public static final DecelerationFunction DEFAULT_DECELERATION = (PathFollower pathFollower, double heading) -> {
-        Vector2D vectorToEndpoint = Vector2D.subtract(pathFollower.endpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
+        Pose vectorToEndpoint = Pose.subtract(pathFollower.endpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
         double forward = vectorToEndpoint.getY();
         double strafe = vectorToEndpoint.getX();
 
@@ -50,7 +25,7 @@ public class PathFollower {
         // reconsider
         double drivePower = pathFollower.endpointPID.getOutput(pathFollower.tracker.getCurrentPosition().getMagnitude(), pathFollower.endpoint.getMagnitude());
 
-        Vector2D drive = new Vector2D(
+        Pose drive = new Pose(
                 forward,
                 strafe
         );
@@ -66,14 +41,14 @@ public class PathFollower {
     }
 
     public static final CheckFinishedFunction DEFAULT_CHECK_FINISHED = (PathFollower pathFollower, double toleranceXY1, double toleranceR1) -> (
-            Vector2D.dist(pathFollower.tracker.getCurrentPosition().asVector(), pathFollower.pathContainer.getEndpoint()) < toleranceXY1
+            Pose.dist(pathFollower.tracker.getCurrentPosition().asVector(), pathFollower.pathContainer.getEndpoint()) < toleranceXY1
                     && normalizeAngle(pathFollower.tracker.getCurrentPosition().getHeadingRadians() - pathFollower.pathContainer.getHeading(), Math.PI) < toleranceR1
     );
 
     private final DriveController driveController;
     private final DeterministicTracker tracker;
     private final PathContainer pathContainer;
-    private final Vector2D endpoint;
+    private final Pose endpoint;
     private final CheckFinishedFunction checkFinishedFunction;
     private final DecelerationFunction decelerationFunction;
 
@@ -83,6 +58,7 @@ public class PathFollower {
     private final PID endpointPID;
 
     private final Runnable finalAction;
+    private final double lookAhead;
     private final double endToleranceXY;
     private final double endToleranceR;
     private final double endVelocityTolerance;
@@ -106,6 +82,7 @@ public class PathFollower {
         this.endpointPID = pathFollowerBuilder.endpointPID;
 
         this.finalAction = pathFollowerBuilder.finalAction;
+        this.lookAhead = pathFollowerBuilder.lookAhead;
         this.endToleranceXY = pathFollowerBuilder.endToleranceXY;
         this.endToleranceR = pathFollowerBuilder.endToleranceR;
         this.endVelocityTolerance = pathFollowerBuilder.endVelocityTolerance;
@@ -136,8 +113,8 @@ public class PathFollower {
         endpointPID.reset();
     }
 
-    private Vector2D predictBrakeStop(Vector2D velocity) {
-        return Vector2D.scale(Vector2D.square(velocity), -1 / (2 * deceleration));
+    private Pose predictBrakeStop(Pose velocity) {
+        return Pose.scale(Pose.square(velocity), -1 / (2 * deceleration));
     }
 
     public void update() {
@@ -151,10 +128,10 @@ public class PathFollower {
 
         if (
                 (isFinished(endToleranceXY, endToleranceR)
-                && (tracker.getRobotVelocity().getMagnitude() < endVelocityTolerance))
-                || (decelerating
-                && (pathTime.seconds() > timeAfterDeceleration))
-                || (killTimer.seconds() > killTime)
+                        && (tracker.getRobotVelocity().getMagnitude() < endVelocityTolerance))
+                        || (decelerating
+                        && (pathTime.seconds() > timeAfterDeceleration))
+                        || (killTimer.seconds() > killTime)
         ) {
             completed = true;
             driveController.drive(0, 0, 0);
@@ -165,23 +142,23 @@ public class PathFollower {
 
         pathContainer.updateHeading(tracker.getCurrentPosition().getHeadingRadians());
 
-        Vector2D robotPosition = tracker.getCurrentPosition().asVector();
+        Pose robotPosition = tracker.getCurrentPosition().asVector();
         double heading = tracker.getCurrentPosition().getHeadingRadians();
         double rotate = -headingPID.getOutput(heading, normalizeAngle(pathContainer.getHeading(), heading));
 
-        if (decelerating || (pathContainer.getI() == pathContainer.getN() - 1 && Vector2D.fastdist(robotPosition, endpoint) < Vector2D.fastdist(predictBrakeStop(tracker.getRobotVelocity().asVector()), Vector2D.ZERO))) {
+        if (decelerating || (pathContainer.getI() == pathContainer.getN() - 1 && Pose.dist(robotPosition, endpoint) < Pose.dist(predictBrakeStop(tracker.getRobotVelocity().asVector()), Pose.ZERO))) {
             if (!decelerating)
                 pathTime.reset();
             decelerating = true;
 
-            Vector2D drive = decelerationFunction.decelerate(this, heading);
+            Pose drive = decelerationFunction.decelerate(this, heading);
             driveController.drive(drive.getX(), drive.getY(), rotate);
 
             return;
         }
 
-        Vector2D nextPosition = pathContainer.getNextPosition(robotPosition, heading);
-        Vector2D vectorToNextPosition = Vector2D.subtract(nextPosition, robotPosition);
+        Pose nextPosition = pathContainer.getNextPosition(robotPosition, heading, lookAhead);
+        Pose vectorToNextPosition = Pose.subtract(nextPosition, robotPosition);
 
         double forward = vectorToNextPosition.getY();
         double strafe = vectorToNextPosition.getX();
@@ -206,6 +183,7 @@ public class PathFollower {
         private PID endpointPID;
 
         private Runnable finalAction;
+        private double lookAhead;
         private double endToleranceXY;
         private double endToleranceR;
         private double endVelocityTolerance;
@@ -228,6 +206,7 @@ public class PathFollower {
             this.endpointPID = new PID(0,0,0);
 
             this.finalAction = null;
+            this.lookAhead = 0.5;
             this.endToleranceXY = 0;
             this.endToleranceR = 0;
             this.endVelocityTolerance = 0;
@@ -253,6 +232,11 @@ public class PathFollower {
 
         public PathFollowerBuilder addFinalAction(Runnable action) {
             this.finalAction = action;
+            return this;
+        }
+
+        public PathFollowerBuilder setLookAhead(double lookAhead) {
+            this.lookAhead = lookAhead;
             return this;
         }
 

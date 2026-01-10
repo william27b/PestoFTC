@@ -5,8 +5,8 @@ import java.util.ArrayList;
 public class PathContainer {
     public final ArrayList<BezierCurve> curves;
     public final ArrayList<ParametricHeading> headings;
-    private final Vector2D startPosition;
-    private Vector2D currentPosition;
+    private final Pose startPosition;
+    private Pose currentPosition;
     private double heading;
     private final ArrayList<Runnable> actions;
     private boolean executed;
@@ -45,7 +45,7 @@ public class PathContainer {
         this.i = 0;
     }
 
-    public Vector2D getEndpoint() {
+    public Pose getEndpoint() {
         for (int i = n-1; i >= 0; i--) {
             if (curves.get(i) != null)
                 return curves.get(i).getPoint(1.0);
@@ -95,7 +95,7 @@ public class PathContainer {
         }
     }
 
-    public Vector2D getNextPosition(Vector2D robotPosition, double robotHeading) {
+    public Pose getNextPosition(Pose robotPosition, double robotHeading, double lookAhead) {
         // currentCurve
         BezierCurve currentCurve = curves.get(i);
 
@@ -113,22 +113,38 @@ public class PathContainer {
         }
 
         if (currentCurve != null) {
-            Vector2D currentPosition = currentCurve.getPoint();
+            Pose currentPosition = currentCurve.getPoint();
             currentCurve.increment(increment);
 
-            if (Vector2D.equals(currentPosition, robotPosition)) {
+            if (Pose.equals(currentPosition, robotPosition)) {
                 currentCurve.increment(increment);
             }
 
-            Vector2D nextPosition = currentCurve.getPoint();
+            Pose nextPosition = currentCurve.getPoint();
 
-            while (Vector2D.fastdist(nextPosition, robotPosition) < Vector2D.fastdist(currentPosition, robotPosition)) {
+            while (Pose.dist(nextPosition, robotPosition) < Pose.dist(currentPosition, robotPosition) || Pose.dist(nextPosition, robotPosition) < lookAhead) {
                 currentPosition = nextPosition;
                 currentCurve.increment(increment);
                 nextPosition = currentCurve.getPoint();
+
+                if (currentCurve.getT() == 1) break;
             }
 
             this.currentPosition = currentPosition;
+
+//            if (Pose.equals(currentPosition, robotPosition)) {
+//                currentCurve.increment(increment);
+//            }
+//
+//            Pose nextPosition = currentCurve.getPoint();
+//
+//            while (Pose.dist(nextPosition, robotPosition) < Pose.dist(currentPosition, robotPosition)) {
+//                currentPosition = nextPosition;
+//                currentCurve.increment(increment);
+//                nextPosition = currentCurve.getPoint();
+//            }
+//
+//            this.currentPosition = currentPosition;
         }
 
 
@@ -151,7 +167,7 @@ public class PathContainer {
         private final ArrayList<BezierCurve> curves;
         private final ArrayList<ParametricHeading> headings;
         private final ArrayList<Runnable> actions;
-        private Vector2D startPosition;
+        private Pose startPosition;
 
         private double increment;
 
@@ -159,12 +175,12 @@ public class PathContainer {
             this.curves = new ArrayList<>();
             this.headings = new ArrayList<>();
             this.actions = new ArrayList<>();
-            this.startPosition = new Vector2D(0, 0);
+            this.startPosition = new Pose(0, 0);
 
             this.increment = 0.0005;
         }
 
-        public PathContainerBuilder setStartPosition(Vector2D startPosition) {
+        public PathContainerBuilder setStartPosition(Pose startPosition) {
             this.startPosition = startPosition;
             return this;
         }

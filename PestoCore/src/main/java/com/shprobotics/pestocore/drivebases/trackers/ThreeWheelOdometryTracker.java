@@ -5,8 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.shprobotics.pestocore.geometries.Circle;
-import com.shprobotics.pestocore.geometries.Pose2D;
-import com.shprobotics.pestocore.geometries.Vector2D;
+import com.shprobotics.pestocore.geometries.Pose;
 
 public class ThreeWheelOdometryTracker implements DeterministicTracker {
     public final double FORWARD_OFFSET;
@@ -16,11 +15,11 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
     public final Odometry rightOdometry;
     public final Odometry centerOdometry;
 
-    private Pose2D robotVelocity;
-    private Pose2D positionMinus2;
-    private Pose2D positionMinus1;
-    private Pose2D deltaPosition;
-    private Pose2D currentPosition;
+    private Pose robotVelocity;
+    private Pose positionMinus2;
+    private Pose positionMinus1;
+    private Pose deltaPosition;
+    private Pose currentPosition;
 
     private final ElapsedTime elapsedTime;
     private double lastTime;
@@ -47,23 +46,23 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
     }
 
     public void reset(double heading) {
-        this.robotVelocity = new Pose2D(0, 0, 0);
-        this.positionMinus2 = new Pose2D(0, 0, 0);
-        this.positionMinus1 = new Pose2D(0, 0, 0);
-        this.deltaPosition = new Pose2D(0, 0, 0);
-        this.currentPosition = new Pose2D(0, 0, heading);
+        this.robotVelocity = new Pose(0, 0, 0);
+        this.positionMinus2 = new Pose(0, 0, 0);
+        this.positionMinus1 = new Pose(0, 0, 0);
+        this.deltaPosition = new Pose(0, 0, 0);
+        this.currentPosition = new Pose(0, 0, heading);
     }
 
-    public void reset(Pose2D position) {
-        this.robotVelocity = new Pose2D(0, 0, 0);
-        this.positionMinus2 = new Pose2D(0, 0, 0);
-        this.positionMinus1 = new Pose2D(0, 0, 0);
-        this.deltaPosition = new Pose2D(0, 0, 0);
+    public void reset(Pose position) {
+        this.robotVelocity = new Pose(0, 0, 0);
+        this.positionMinus2 = new Pose(0, 0, 0);
+        this.positionMinus1 = new Pose(0, 0, 0);
+        this.deltaPosition = new Pose(0, 0, 0);
         this.currentPosition = position;
     }
 
     public void resetHeading(double heading) {
-        this.currentPosition = new Pose2D(
+        this.currentPosition = new Pose(
                 this.currentPosition.getX(),
                 this.currentPosition.getY(),
                 heading
@@ -86,7 +85,7 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
 
         double deltaTime = this.elapsedTime.seconds() - this.lastTime;
         this.lastTime = this.elapsedTime.seconds();
-        this.robotVelocity = Pose2D.multiply(new Pose2D(x, y, r), 1/deltaTime);
+        this.robotVelocity = Pose.multiply(new Pose(x, y, r), 1/deltaTime);
 
         double headingRadians = currentPosition.getHeadingRadians();
 
@@ -96,7 +95,7 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         this.positionMinus2 = this.positionMinus1;
         this.positionMinus1 = this.currentPosition;
 
-        this.deltaPosition = new Pose2D(
+        this.deltaPosition = new Pose(
                 xOriented,
                 yOriented,
                 r
@@ -108,15 +107,15 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
     }
 
 
-    public Pose2D getCurrentPosition() {
+    public Pose getCurrentPosition() {
         return this.currentPosition;
     }
 
-    public Pose2D getRobotVelocity() {
+    public Pose getRobotVelocity() {
         return this.robotVelocity;
     }
 
-    public Pose2D getDeltaPosition() {
+    public Pose getDeltaPosition() {
         return deltaPosition;
     }
 
@@ -124,10 +123,10 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         return Circle.getRadius(this.positionMinus2.asVector(), this.positionMinus1.asVector(), this.currentPosition.asVector());
     }
 
-    public Vector2D getCentripetalForce() {
+    public Pose getCentripetalForce() {
         double magnitude = this.robotVelocity.getMagnitude();
-        double scalar = magnitude * magnitude / getCentripetalRadius();
-        return Vector2D.scale(Vector2D.perpendicular(this.robotVelocity.asVector()), scalar);
+        double scalar = magnitude / getCentripetalRadius(); // we don't need magnitude * magnitude; we multiply by robotVelocity after
+        return Pose.scale(Pose.perpendicular(this.robotVelocity.asVector()), scalar);
     }
 
     public static class TrackerBuilder implements Tracker.TrackerBuilder {
@@ -138,10 +137,10 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         private final Odometry centerOdometry;
         private final Odometry rightOdometry;
 
-        private final Pose2D robotVelocity;
-        private final Pose2D positionMinus2;
-        private final Pose2D positionMinus1;
-        private final Pose2D currentPosition;
+        private final Pose robotVelocity;
+        private final Pose positionMinus2;
+        private final Pose positionMinus1;
+        private final Pose currentPosition;
         private final ElapsedTime elapsedTime;
         private final double lastTime;
 
@@ -185,10 +184,10 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
             this.rightOdometry.reset();
             this.centerOdometry.reset();
 
-            this.robotVelocity = new Pose2D(0, 0, 0);
-            this.positionMinus2 = new Pose2D(0, 0, 0);
-            this.positionMinus1 = new Pose2D(0, 0, 0);
-            this.currentPosition = new Pose2D(0, 0, 0);
+            this.robotVelocity = new Pose(0, 0, 0);
+            this.positionMinus2 = new Pose(0, 0, 0);
+            this.positionMinus1 = new Pose(0, 0, 0);
+            this.currentPosition = new Pose(0, 0, 0);
 
             this.elapsedTime = new ElapsedTime();
             this.lastTime = elapsedTime.seconds();

@@ -1,11 +1,10 @@
 package com.shprobotics.pestocore.drivebases.trackers;
 
-import com.shprobotics.pestocore.geometries.Pose2D;
-import com.shprobotics.pestocore.geometries.Vector2D;
+import com.shprobotics.pestocore.geometries.Pose;
 
 public interface DeterministicTracker extends Tracker {
-    Pose2D getRobotVelocity();
-    Pose2D getDeltaPosition();
+    Pose getRobotVelocity();
+    Pose getDeltaPosition();
 
-    Vector2D getCentripetalForce();
+    Pose getCentripetalForce();
 }

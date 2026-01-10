@@ -8,7 +8,7 @@ import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.drivebases.trackers.GoBildaPinpointTracker;
 import com.shprobotics.pestocore.drivebases.trackers.ThreeWheelOdometryTracker;
 import com.shprobotics.pestocore.drivebases.trackers.TwoWheelOdometryTracker;
-import com.shprobotics.pestocore.geometries.Pose2D;
+import com.shprobotics.pestocore.geometries.Pose;
 import com.shprobotics.pestocore.processing.FrontalLobe;
 import com.shprobotics.pestocore.processing.MotorCortex;
 
@@ -45,7 +45,7 @@ public class OdometryWidthTuner extends LinearOpMode {
             teleOpController.driveRobotCentric(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
             tracker.update();
 
-            Pose2D deltaPosition = tracker.getDeltaPosition();
+            Pose deltaPosition = tracker.getDeltaPosition();
             heading += deltaPosition.getHeadingRadians();
 
             teleOpController.updateSpeed(gamepad1);
@@ -57,7 +57,7 @@ public class OdometryWidthTuner extends LinearOpMode {
             MotorCortex.update();
             tracker.update();
 
-            Pose2D deltaPosition = tracker.getDeltaPosition();
+            Pose deltaPosition = tracker.getDeltaPosition();
             heading += deltaPosition.getHeadingRadians();
 
             telemetry.addData("heading total", heading);

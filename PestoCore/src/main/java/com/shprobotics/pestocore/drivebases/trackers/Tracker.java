@@ -1,15 +1,15 @@
 package com.shprobotics.pestocore.drivebases.trackers;
 
-import com.shprobotics.pestocore.geometries.Pose2D;
+import com.shprobotics.pestocore.geometries.Pose;
 
 public interface Tracker {
     void reset();
     void reset(double heading);
-    void reset(Pose2D position);
+    void reset(Pose position);
 
     void update();
 
-    Pose2D getCurrentPosition();
+    Pose getCurrentPosition();
 
     interface TrackerBuilder {
         Tracker build();
