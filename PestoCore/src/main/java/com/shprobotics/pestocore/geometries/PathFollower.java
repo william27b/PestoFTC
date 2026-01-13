@@ -2,10 +2,9 @@ package com.shprobotics.pestocore.geometries;
 
 import static org.apache.commons.math3.util.MathUtils.normalizeAngle;
 
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.shprobotics.pestocore.algorithms.PID;
-import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 import com.shprobotics.pestocore.drivebases.controllers.DriveController;
+import com.shprobotics.pestocore.drivebases.trackers.DeterministicTracker;
 
 public class PathFollower {
     @FunctionalInterface
@@ -37,12 +36,13 @@ public class PathFollower {
 
     @FunctionalInterface
     public interface CheckFinishedFunction {
-        boolean isFinished(PathFollower pathFollower, double toleranceXY, double toleranceR);
+        boolean isFinished(PathFollower pathFollower, double toleranceXY, double toleranceR, double toleranceV);
     }
 
-    public static final CheckFinishedFunction DEFAULT_CHECK_FINISHED = (PathFollower pathFollower, double toleranceXY1, double toleranceR1) -> (
-            Pose.dist(pathFollower.tracker.getCurrentPosition().asVector(), pathFollower.pathContainer.getEndpoint()) < toleranceXY1
-                    && normalizeAngle(pathFollower.tracker.getCurrentPosition().getHeadingRadians() - pathFollower.pathContainer.getHeading(), Math.PI) < toleranceR1
+    public static final CheckFinishedFunction DEFAULT_CHECK_FINISHED = (PathFollower pathFollower, double toleranceXY, double toleranceR, double toleranceV) -> (
+            Pose.dist(pathFollower.tracker.getCurrentPosition().asVector(), pathFollower.pathContainer.getEndpoint()) < toleranceXY
+                    && normalizeAngle(pathFollower.tracker.getCurrentPosition().getHeadingRadians() - pathFollower.pathContainer.getEndpoint().getHeadingRadians(), Math.PI) < toleranceR
+                    && pathFollower.tracker.getRobotVelocity().getMagnitude() < toleranceV
     );
 
     private final DriveController driveController;
@@ -57,16 +57,10 @@ public class PathFollower {
     private final PID headingPID;
     private final PID endpointPID;
 
-    private final Runnable finalAction;
     private final double lookAhead;
     private final double endToleranceXY;
     private final double endToleranceR;
     private final double endVelocityTolerance;
-    private final double timeAfterDeceleration;
-    private final double killTime;
-    private ElapsedTime killTimer;
-    private final ElapsedTime pathTime;
-    private boolean completed;
 
     public PathFollower(PathFollowerBuilder pathFollowerBuilder) {
         this.driveController = pathFollowerBuilder.driveController;
@@ -81,24 +75,14 @@ public class PathFollower {
         this.headingPID = pathFollowerBuilder.headingPID;
         this.endpointPID = pathFollowerBuilder.endpointPID;
 
-        this.finalAction = pathFollowerBuilder.finalAction;
         this.lookAhead = pathFollowerBuilder.lookAhead;
         this.endToleranceXY = pathFollowerBuilder.endToleranceXY;
         this.endToleranceR = pathFollowerBuilder.endToleranceR;
         this.endVelocityTolerance = pathFollowerBuilder.endVelocityTolerance;
-        this.timeAfterDeceleration = pathFollowerBuilder.timeAfterDeceleration;
-        this.killTime = pathFollowerBuilder.killTime;
-        this.killTimer = null;
-        this.pathTime = pathFollowerBuilder.pathTime;
-        this.completed = pathFollowerBuilder.completed;
     }
 
-    public boolean isFinished(double toleranceXY, double toleranceR) {
-        return checkFinishedFunction.isFinished(this, toleranceXY, toleranceR);
-    }
-
-    public boolean isCompleted() {
-        return completed;
+    public boolean isFinished() {
+        return checkFinishedFunction.isFinished(this, endToleranceXY, endToleranceR, endVelocityTolerance);
     }
 
     public boolean isDecelerating() {
@@ -107,7 +91,6 @@ public class PathFollower {
 
     public void reset() {
         this.decelerating = false;
-        this.killTimer = null;
         pathContainer.reset();
         headingPID.reset();
         endpointPID.reset();
@@ -118,37 +101,18 @@ public class PathFollower {
     }
 
     public void update() {
-        if (completed)
-            return;
-
-        if (killTimer == null) {
-            killTimer = new ElapsedTime();
-            killTimer.reset();
-        }
-
-        if (
-                (isFinished(endToleranceXY, endToleranceR)
-                        && (tracker.getRobotVelocity().getMagnitude() < endVelocityTolerance))
-                        || (decelerating
-                        && (pathTime.seconds() > timeAfterDeceleration))
-                        || (killTimer.seconds() > killTime)
-        ) {
-            completed = true;
+        // will hold position if it is no longer finished at any point in time
+        if (isFinished())
             driveController.drive(0, 0, 0);
-            if (finalAction != null) {
-                finalAction.run();
-            }
-        }
 
-        pathContainer.updateHeading(tracker.getCurrentPosition().getHeadingRadians());
 
         Pose robotPosition = tracker.getCurrentPosition().asVector();
-        double heading = tracker.getCurrentPosition().getHeadingRadians();
-        double rotate = -headingPID.getOutput(heading, normalizeAngle(pathContainer.getHeading(), heading));
+        Pose nextPosition = pathContainer.getNextPosition(robotPosition, lookAhead);
 
-        if (decelerating || (pathContainer.getI() == pathContainer.getN() - 1 && Pose.dist(robotPosition, endpoint) < Pose.dist(predictBrakeStop(tracker.getRobotVelocity().asVector()), Pose.ZERO))) {
-            if (!decelerating)
-                pathTime.reset();
+        double heading = tracker.getCurrentPosition().getHeadingRadians();
+        double rotate = -headingPID.getOutput(heading, normalizeAngle(nextPosition.getHeadingRadians(), heading));
+
+        if (decelerating || (pathContainer.getI() == pathContainer.getN() - 1 && Pose.dist(robotPosition, endpoint) < predictBrakeStop(tracker.getRobotVelocity().asVector()).getMagnitude())) {
             decelerating = true;
 
             Pose drive = decelerationFunction.decelerate(this, heading);
@@ -157,7 +121,6 @@ public class PathFollower {
             return;
         }
 
-        Pose nextPosition = pathContainer.getNextPosition(robotPosition, heading, lookAhead);
         Pose vectorToNextPosition = Pose.subtract(nextPosition, robotPosition);
 
         double forward = vectorToNextPosition.getY();
@@ -182,15 +145,10 @@ public class PathFollower {
         private PID headingPID;
         private PID endpointPID;
 
-        private Runnable finalAction;
         private double lookAhead;
         private double endToleranceXY;
         private double endToleranceR;
         private double endVelocityTolerance;
-        private double timeAfterDeceleration;
-        private double killTime;
-        private final ElapsedTime pathTime;
-        private final boolean completed;
 
         public PathFollowerBuilder(DriveController driveController, DeterministicTracker tracker, PathContainer pathContainer) {
             this.driveController = driveController;
@@ -205,15 +163,10 @@ public class PathFollower {
             this.headingPID = new PID(0,0,0);
             this.endpointPID = new PID(0,0,0);
 
-            this.finalAction = null;
             this.lookAhead = 0.5;
             this.endToleranceXY = 0;
             this.endToleranceR = 0;
             this.endVelocityTolerance = 0;
-            this.timeAfterDeceleration = Double.POSITIVE_INFINITY;
-            this.killTime = Double.POSITIVE_INFINITY;
-            this.pathTime = new ElapsedTime();
-            this.completed = false;
 
             if (deceleration == 0) {
                 throw new IllegalArgumentException("Deceleration cannot be 0");
@@ -227,11 +180,6 @@ public class PathFollower {
 
         public PathFollowerBuilder setDecelerationFunction(DecelerationFunction decelerationFunction) {
             this.decelerationFunction = decelerationFunction;
-            return this;
-        }
-
-        public PathFollowerBuilder addFinalAction(Runnable action) {
-            this.finalAction = action;
             return this;
         }
 
@@ -251,18 +199,8 @@ public class PathFollower {
             return this;
         }
 
-        public PathFollowerBuilder setTimeAfterDeceleration(double timeAfterDeceleration) {
-            this.timeAfterDeceleration = timeAfterDeceleration;
-            return this;
-        }
-
         public PathFollowerBuilder setDeceleration(double deceleration) {
             this.deceleration = deceleration;
-            return this;
-        }
-
-        public PathFollowerBuilder setKillTime(double killTime) {
-            this.killTime = killTime;
             return this;
         }
 

@@ -44,9 +44,6 @@ public class ForceTuner extends LinearOpMode {
         driveController.drive(1, 0, 0);
 
         while (opModeIsActive() && !isStopRequested() && tracker.getCurrentPosition().getY() < distance) {
-            if (gamepad1.b)
-                return;
-
             MotorCortex.update();
             tracker.update();
         }

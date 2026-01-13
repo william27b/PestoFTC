@@ -15,7 +15,9 @@ public class MecanumController implements DriveController {
     private Pose[] powerVectors = new Pose[]{new Pose(1, 1), new Pose(-1, 1), new Pose(-1, 1), new Pose(1, 1)};
 
     private double driveSpeed = 1;
+
     private double staticPower = 0.0;
+    private boolean isStatic = false;
 
     public MecanumController(CortexLinkedMotor frontLeft, CortexLinkedMotor frontRight, CortexLinkedMotor backLeft, CortexLinkedMotor backRight) {
         this.frontLeft = new MecanumWheel(frontLeft);
@@ -37,6 +39,10 @@ public class MecanumController implements DriveController {
 
     public void setStaticPower(double staticPower) {
         this.staticPower = staticPower;
+    }
+
+    public void setIsStatic(boolean isStatic) {
+        this.isStatic = isStatic;
     }
 
     public void setCachingTolerance(double cachingTolerance) {
@@ -108,10 +114,10 @@ public class MecanumController implements DriveController {
         double backLeftPower = (powerVectors[2].getY() * forward) + (powerVectors[2].getX() * strafe) + rotate;
         double backRightPower = (powerVectors[3].getY() * forward) + (powerVectors[3].getX() * strafe) - rotate;
 
-        frontLeftPower += staticPower * Math.signum(frontLeftPower);
-        frontRightPower += staticPower * Math.signum(frontRightPower);
-        backLeftPower += staticPower * Math.signum(backLeftPower);
-        backRightPower += staticPower * Math.signum(backRightPower);
+        frontLeftPower += staticPower * Math.signum(frontLeftPower) * (isStatic ? 1 : 0);
+        frontRightPower += staticPower * Math.signum(frontRightPower) * (isStatic ? 1 : 0);
+        backLeftPower += staticPower * Math.signum(backLeftPower) * (isStatic ? 1 : 0);
+        backRightPower += staticPower * Math.signum(backRightPower) * (isStatic ? 1 : 0);
 
         double max = Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower)));
 
@@ -128,10 +134,10 @@ public class MecanumController implements DriveController {
         double backLeftPower = (powerVectors[2].getY() * forward) + (powerVectors[2].getX() * strafe) + rotate;
         double backRightPower = (powerVectors[3].getY() * forward) + (powerVectors[3].getX() * strafe) - rotate;
 
-        frontLeftPower += staticPower * Math.signum(frontLeftPower);
-        frontRightPower += staticPower * Math.signum(frontRightPower);
-        backLeftPower += staticPower * Math.signum(backLeftPower);
-        backRightPower += staticPower * Math.signum(backRightPower);
+        frontLeftPower += staticPower * Math.signum(frontLeftPower) * (isStatic ? 1 : 0);
+        frontRightPower += staticPower * Math.signum(frontRightPower) * (isStatic ? 1 : 0);
+        backLeftPower += staticPower * Math.signum(backLeftPower) * (isStatic ? 1 : 0);
+        backRightPower += staticPower * Math.signum(backRightPower) * (isStatic ? 1 : 0);
 
         double max = Math.max(1, Math.max(Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower)), Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
 

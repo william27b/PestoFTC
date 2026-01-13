@@ -8,9 +8,6 @@ public class BezierCurve {
     private double t;
 
     public BezierCurve(Pose[] controlPoints) {
-        for (Pose point: controlPoints)
-            assert point.isVector();
-
         this.controlPoints = controlPoints;
         this.n = controlPoints.length;
         this.t = 0;
@@ -24,15 +21,14 @@ public class BezierCurve {
         return this.t;
     }
 
-    public Pose getPoint(double t) {
-        if (t == 0) {
+    public Pose getPose(double t) {
+        if (t == 0)
             return controlPoints[0];
-        }
-        if (t == 1) {
-            return controlPoints[n-1];
-        }
 
-        Pose point = new Pose(0, 0);
+        if (t == 1)
+            return controlPoints[n-1];
+
+        Pose pose = new Pose(0, 0, 0);
 
         double n_factorial = 1;
         for (int i = 1; i < n; i++) {
@@ -48,14 +44,14 @@ public class BezierCurve {
             copy.scale((n_factorial / (i_factorial * n_minus_i_factorial)) * Math.pow(1 - t, controlPoints.length - i - 1) * Math.pow(t, i));
 
             i_factorial *= i + 1;
-            point.add(copy);
+            pose.add(copy);
         }
 
-        return point;
+        return pose;
     }
 
-    public Pose getPoint() {
-        return this.getPoint(this.t);
+    public Pose getPose() {
+        return this.getPose(this.t);
     }
 
     public Path getEditorPath(String color, String id) {
