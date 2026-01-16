@@ -41,7 +41,7 @@ public class BezierCurve {
             n_minus_i_factorial /= (n - i);
 
             Pose copy = controlPoints[i].copy();
-            copy.scale((n_factorial / (i_factorial * n_minus_i_factorial)) * Math.pow(1 - t, controlPoints.length - i - 1) * Math.pow(t, i));
+            copy.scaleWithHeading((n_factorial / (i_factorial * n_minus_i_factorial)) * Math.pow(1 - t, controlPoints.length - i - 1) * Math.pow(t, i));
 
             i_factorial *= i + 1;
             pose.add(copy);

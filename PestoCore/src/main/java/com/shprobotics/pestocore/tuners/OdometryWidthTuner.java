@@ -35,6 +35,7 @@ public class OdometryWidthTuner extends LinearOpMode {
 
         teleOpController = FrontalLobe.teleOpController;
 
+        telemetry.addData("R", tracker.getCurrentPosition().getHeadingRadians());
         telemetry.addLine("rotate 10x times counter-clockwise, then press b");
         telemetry.update();
 

@@ -73,12 +73,22 @@ public class Pose {
     }
 
     public static Pose scale(Pose pose, double scalar) {
-        return new Pose(pose.x * scalar, pose.y * scalar);
+        return new Pose(pose.x * scalar, pose.y * scalar, pose.heading);
     }
 
     public void scale(double scalar) {
         this.x = this.x * scalar;
         this.y = this.y * scalar;
+    }
+
+    public static Pose scaleWithHeading(Pose pose, double scalar) {
+        return new Pose(pose.x * scalar, pose.y * scalar, pose.heading * scalar);
+    }
+
+    public void scaleWithHeading(double scalar) {
+        this.x = this.x * scalar;
+        this.y = this.y * scalar;
+        this.heading = this.heading * scalar;
     }
 
     public static Pose rotate(Pose pose, double heading) {

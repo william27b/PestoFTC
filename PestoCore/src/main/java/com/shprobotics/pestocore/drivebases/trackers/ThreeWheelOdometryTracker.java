@@ -147,7 +147,9 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
         public TrackerBuilder(
                 HardwareMap hardwareMap,
 
-                double ODOMETRY_TICKS_PER_INCH,
+                double ODOMETRY_TICKS_PER_INCH_LEFT,
+                double ODOMETRY_TICKS_PER_INCH_RIGHT,
+                double ODOMETRY_TICKS_PER_INCH_CENTER,
                 double FORWARD_OFFSET,
                 double ODOMETRY_WIDTH,
 
@@ -164,19 +166,19 @@ public class ThreeWheelOdometryTracker implements DeterministicTracker {
 
             this.leftOdometry = new Odometry(
                     (DcMotor)hardwareMap.get(leftName),
-                    ODOMETRY_TICKS_PER_INCH);
+                    ODOMETRY_TICKS_PER_INCH_LEFT);
 
             this.leftOdometry.setDirection(leftDirection);
 
             this.rightOdometry = new Odometry(
                     (DcMotor)hardwareMap.get(rightName),
-                    ODOMETRY_TICKS_PER_INCH);
+                    ODOMETRY_TICKS_PER_INCH_RIGHT);
 
             this.rightOdometry.setDirection(rightDirection);
 
             this.centerOdometry = new Odometry(
                     (DcMotor)hardwareMap.get(centerName),
-                    ODOMETRY_TICKS_PER_INCH);
+                    ODOMETRY_TICKS_PER_INCH_CENTER);
 
             this.centerOdometry.setDirection(centerDirection);
 

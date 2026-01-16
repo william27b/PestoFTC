@@ -13,16 +13,19 @@ public class PathFollower {
     }
 
     public static final DecelerationFunction DEFAULT_DECELERATION = (PathFollower pathFollower, double heading) -> {
-        Pose vectorToEndpoint = Pose.subtract(pathFollower.endpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
-        double forward = vectorToEndpoint.getY();
-        double strafe = vectorToEndpoint.getX();
+        Pose poseVectorToEndpoint = Pose.subtract(pathFollower.endpoint, pathFollower.tracker.getCurrentPosition());
+        Pose velocityVectorToEndpoint = Pose.subtract(poseVectorToEndpoint, pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()));
+        double forward = velocityVectorToEndpoint.getY();
+        double strafe = velocityVectorToEndpoint.getX();
 
         double temp = forward * Math.cos(heading) + strafe * Math.sin(-heading);
         strafe = forward * Math.sin(heading) + strafe * Math.cos(heading);
         forward = temp;
 
         // reconsider
-        double drivePower = pathFollower.endpointPID.getOutput(pathFollower.tracker.getCurrentPosition().getMagnitude(), pathFollower.endpoint.getMagnitude());
+        double brakeMagnitude = pathFollower.predictBrakeStop(pathFollower.tracker.getRobotVelocity().asVector()).getMagnitude();
+        double distanceToEndpoint = Pose.dist(pathFollower.tracker.getCurrentPosition(), pathFollower.endpoint);
+        double drivePower = Math.abs(pathFollower.endpointPID.getOutput(brakeMagnitude, distanceToEndpoint));
 
         Pose drive = new Pose(
                 forward,
@@ -41,7 +44,7 @@ public class PathFollower {
 
     public static final CheckFinishedFunction DEFAULT_CHECK_FINISHED = (PathFollower pathFollower, double toleranceXY, double toleranceR, double toleranceV) -> (
             Pose.dist(pathFollower.tracker.getCurrentPosition().asVector(), pathFollower.pathContainer.getEndpoint()) < toleranceXY
-                    && normalizeAngle(pathFollower.tracker.getCurrentPosition().getHeadingRadians() - pathFollower.pathContainer.getEndpoint().getHeadingRadians(), Math.PI) < toleranceR
+                    && Math.abs(normalizeAngle(pathFollower.tracker.getCurrentPosition().getHeadingRadians() - pathFollower.pathContainer.getEndpoint().getHeadingRadians(), 0.0)) < toleranceR
                     && pathFollower.tracker.getRobotVelocity().getMagnitude() < toleranceV
     );
 
@@ -97,7 +100,13 @@ public class PathFollower {
     }
 
     private Pose predictBrakeStop(Pose velocity) {
-        return Pose.scale(Pose.square(velocity), -1 / (2 * deceleration));
+        double brakeMagnitude = Pose.scale(Pose.square(velocity), -1 / (2 * deceleration)).getMagnitude();
+        double velocityMagnitude = velocity.getMagnitude();
+        return Pose.scale(tracker.getRobotVelocity(), brakeMagnitude / velocityMagnitude);
+    }
+
+    public PathContainer getPathContainer() {
+        return this.pathContainer;
     }
 
     public void update() {
@@ -146,11 +155,11 @@ public class PathFollower {
         private PID endpointPID;
 
         private double lookAhead;
-        private double endToleranceXY;
-        private double endToleranceR;
-        private double endVelocityTolerance;
+        private final double endToleranceXY;
+        private final double endToleranceR;
+        private final double endVelocityTolerance;
 
-        public PathFollowerBuilder(DriveController driveController, DeterministicTracker tracker, PathContainer pathContainer) {
+        public PathFollowerBuilder(DriveController driveController, DeterministicTracker tracker, PathContainer pathContainer, double endToleranceXY, double endToleranceR, double endVelocityTolerance) {
             this.driveController = driveController;
             this.tracker = tracker;
             this.pathContainer = pathContainer;
@@ -164,9 +173,9 @@ public class PathFollower {
             this.endpointPID = new PID(0,0,0);
 
             this.lookAhead = 0.5;
-            this.endToleranceXY = 0;
-            this.endToleranceR = 0;
-            this.endVelocityTolerance = 0;
+            this.endToleranceXY = endToleranceXY;
+            this.endToleranceR = endToleranceR;
+            this.endVelocityTolerance = endVelocityTolerance;
 
             if (deceleration == 0) {
                 throw new IllegalArgumentException("Deceleration cannot be 0");
@@ -185,17 +194,6 @@ public class PathFollower {
 
         public PathFollowerBuilder setLookAhead(double lookAhead) {
             this.lookAhead = lookAhead;
-            return this;
-        }
-
-        public PathFollowerBuilder setEndTolerance(double endToleranceXY, double endToleranceR) {
-            this.endToleranceXY = endToleranceXY;
-            this.endToleranceR = endToleranceR;
-            return this;
-        }
-
-        public PathFollowerBuilder setEndVelocityTolerance(double endVelocityTolerance) {
-            this.endVelocityTolerance = endVelocityTolerance;
             return this;
         }
 

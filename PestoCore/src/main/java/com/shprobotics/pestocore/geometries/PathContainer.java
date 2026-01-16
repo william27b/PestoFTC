@@ -31,38 +31,39 @@ public class PathContainer {
         return curves.get(n - 1).getPose(1.0);
     }
 
+    public Pose getCurrentPosition() {
+        return this.currentPosition;
+    }
+
     public Pose getNextPosition(Pose robotPosition, double lookAhead) {
         assert lookAhead > 0;
 
         // currentCurve
         BezierCurve currentCurve = curves.get(i);
 
-        if (currentCurve == null || currentCurve.getT() == 1) {
+        if (currentCurve.getT() == 1) {
             this.i = Math.min(n - 1, i + 1);
             currentCurve = curves.get(i);
         }
 
-        if (currentCurve != null) {
-            Pose currentPosition = currentCurve.getPose();
+        Pose currentPosition = currentCurve.getPose();
+        currentCurve.increment(increment);
+
+        if (Pose.equals(currentPosition, robotPosition)) {
             currentCurve.increment(increment);
-
-            if (Pose.equals(currentPosition, robotPosition)) {
-                currentCurve.increment(increment);
-            }
-
-            Pose nextPosition = currentCurve.getPose();
-
-            while (Pose.dist(nextPosition, robotPosition) < Pose.dist(currentPosition, robotPosition) || Pose.dist(nextPosition, robotPosition) < lookAhead) {
-                currentPosition = nextPosition;
-                currentCurve.increment(increment);
-                nextPosition = currentCurve.getPose();
-
-                if (currentCurve.getT() == 1) break;
-            }
-
-            this.currentPosition = currentPosition;
         }
 
+        Pose nextPosition = currentCurve.getPose();
+
+        while (Pose.dist(nextPosition, robotPosition) <= Pose.dist(currentPosition, robotPosition) || Pose.dist(nextPosition, robotPosition) < lookAhead) {
+            currentPosition = nextPosition;
+            currentCurve.increment(increment);
+            nextPosition = currentCurve.getPose();
+
+            if (currentCurve.getT() == 1) break;
+        }
+
+        this.currentPosition = currentPosition;
         return currentPosition;
     }
 
