@@ -35,4 +35,16 @@ public class GamepadInterface {
     public boolean isKey(GamepadKey key) {
         return keys.get(key.idx).isKey();
     }
+
+    public double getTimeDown(GamepadKey key) {
+        return keys.get(key.idx).getTimeDown();
+    }
+
+    public boolean isClicked(GamepadKey key, double maxSeconds) {
+        return keys.get(key.idx).isClicked(maxSeconds);
+    }
+
+    public boolean isHeld(GamepadKey key, double minSeconds) {
+        return keys.get(key.idx).isHeld(minSeconds);
+    }
 }
