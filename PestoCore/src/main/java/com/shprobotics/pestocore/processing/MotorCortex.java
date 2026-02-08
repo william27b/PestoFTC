@@ -1,16 +1,25 @@
 package com.shprobotics.pestocore.processing;
 
+import com.qualcomm.hardware.HardwareDeviceManager;
+import com.qualcomm.hardware.lynx.LynxDcMotorController;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.lynx.LynxServoController;
+import com.qualcomm.robotcore.exception.RobotCoreException;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorControllerEx;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DeviceManager;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoControllerEx;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+import com.qualcomm.robotcore.hardware.configuration.typecontainers.ServoConfigurationType;
 import com.shprobotics.pestocore.hardware.CortexLinkedCRServo;
 import com.shprobotics.pestocore.hardware.CortexLinkedMotor;
 import com.shprobotics.pestocore.hardware.CortexLinkedServo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 
 import java.util.ArrayList;
 
@@ -34,6 +43,43 @@ public class MotorCortex {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
     }
 
+    public static CortexLinkedMotor getMotor(int port, boolean isParent) {
+        // From HardwareFactory.java
+        LynxDcMotorController controller = null;
+        try {
+            for (LynxModule module: hardwareMap.getAll(LynxModule.class)) {
+                if (module.isParent() != isParent)
+                    continue;
+
+                controller = new LynxDcMotorController(hardwareMap.appContext, module);
+            }
+        }  catch (RobotCoreException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        assert controller != null;
+
+        // USB Scan Manager.java uses null manager?
+        DeviceManager deviceMgr = new HardwareDeviceManager(hardwareMap.appContext, null);
+
+        // Using GoBILDA 5203 Motor Configuration
+        MotorConfigurationType motorConfigurationType = new MotorConfigurationType();
+        motorConfigurationType.setTicksPerRev(505.3169);
+        motorConfigurationType.setGearing(99.5);
+        motorConfigurationType.setMaxRPM(60);
+        motorConfigurationType.setOrientation(Rotation.CCW);
+
+        DcMotor m = deviceMgr.createDcMotorEx(controller, port, motorConfigurationType, motorConfigurationType.getName());
+
+        // Since it is not automatically enabled, we manually enable it
+        MotorCortex.MotorCommands.enableMotor(m);
+
+        // Cast to CortexLinkedMotor
+        CortexLinkedMotor motor = new CortexLinkedMotor((DcMotorEx) m);
+
+        return motor;
+    }
+
     public static CortexLinkedMotor getMotor(String name) {
         for (CortexLinkedMotor motor: motors) {
             if (motor.getDeviceName().equals(name))
@@ -51,6 +97,40 @@ public class MotorCortex {
         return motor;
     }
 
+    public static CortexLinkedServo getServo(int port, boolean isParent) {
+        // From HardwareFactory.java
+        LynxServoController controller = null;
+        try {
+            for (LynxModule module: hardwareMap.getAll(LynxModule.class)) {
+                if (module.isParent() != isParent)
+                    continue;
+
+                controller = new LynxServoController(hardwareMap.appContext, module);
+            }
+        }  catch (RobotCoreException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        assert controller != null;
+
+        // USB Scan Manager.java uses null manager?
+        DeviceManager deviceMgr = new HardwareDeviceManager(hardwareMap.appContext, null);
+
+        // Using GoBILDA 5203 Motor Configuration
+        ServoConfigurationType servoConfigurationType = new ServoConfigurationType();
+
+        Servo s = deviceMgr.createServoEx(controller, port, servoConfigurationType.getName(), servoConfigurationType);
+
+        // Since it is not automatically enabled, we manually enable it
+        MotorCortex.ServoCommands.enableServo(s);
+
+        // Cast to CortexLinkedServo
+        CortexLinkedServo servo = new CortexLinkedServo(s);
+        servos.add(servo);
+
+        return servo;
+    }
+
     public static CortexLinkedServo getServo(String name) {
         for (CortexLinkedServo servo: servos) {
             if (servo.getDeviceName().equals(name))
@@ -62,6 +142,40 @@ public class MotorCortex {
 
         CortexLinkedServo servo = new CortexLinkedServo((Servo) hardwareMap.get(name));
         servos.add(servo);
+
+        return servo;
+    }
+
+    public static CortexLinkedCRServo getCRServo(int port, boolean isParent) {
+        // From HardwareFactory.java
+        LynxServoController controller = null;
+        try {
+            for (LynxModule module: hardwareMap.getAll(LynxModule.class)) {
+                if (module.isParent() != isParent)
+                    continue;
+
+                controller = new LynxServoController(hardwareMap.appContext, module);
+            }
+        }  catch (RobotCoreException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        assert controller != null;
+
+        // USB Scan Manager.java uses null manager?
+        DeviceManager deviceMgr = new HardwareDeviceManager(hardwareMap.appContext, null);
+
+        // Using GoBILDA 5203 Motor Configuration
+        ServoConfigurationType servoConfigurationType = new ServoConfigurationType();
+
+        CRServo s = deviceMgr.createCRServoEx(controller, port, servoConfigurationType.getName(), servoConfigurationType);
+
+        // Since it is not automatically enabled, we manually enable it
+        MotorCortex.ServoCommands.enableCRServo(s);
+
+        // Cast to CortexLinkedServo
+        CortexLinkedCRServo servo = new CortexLinkedCRServo(s);
+        crServos.add(servo);
 
         return servo;
     }
