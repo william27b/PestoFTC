@@ -9,14 +9,13 @@ import com.shprobotics.pestocore.geometries.Pose;
 
 import org.ejml.simple.SimpleMatrix;
 
-public class TWOT implements DeterministicTracker {
+public class NotEnoughOdometryTracker implements DeterministicTracker {
     public final SimpleMatrix ODOMETRY_PARAMETERS_X;
     public final SimpleMatrix ODOMETRY_PARAMETERS_Y;
     public final SimpleMatrix ODOMETRY_PARAMETERS_R;
 
-    public final Odometry leftOdometry;
-    public final Odometry rightOdometry;
-    public final Odometry centerOdometry;
+    public final Odometry[] odometryPods;
+    private final int n;
 
     private Pose robotVelocity;
     private Pose positionMinus2;
@@ -27,14 +26,13 @@ public class TWOT implements DeterministicTracker {
     private final ElapsedTime elapsedTime;
     private double lastTime;
 
-    public TWOT(TrackerBuilder trackerBuilder) {
+    public NotEnoughOdometryTracker(TrackerBuilder trackerBuilder) {
         this.ODOMETRY_PARAMETERS_X = trackerBuilder.ODOMETRY_PARAMETERS_X;
         this.ODOMETRY_PARAMETERS_Y = trackerBuilder.ODOMETRY_PARAMETERS_Y;
         this.ODOMETRY_PARAMETERS_R = trackerBuilder.ODOMETRY_PARAMETERS_R;
 
-        this.leftOdometry = trackerBuilder.leftOdometry;
-        this.rightOdometry = trackerBuilder.rightOdometry;
-        this.centerOdometry = trackerBuilder.centerOdometry;
+        this.odometryPods = trackerBuilder.odometryPods;
+        this.n = this.odometryPods.length;
 
         this.robotVelocity = trackerBuilder.robotVelocity;
         this.positionMinus2 = trackerBuilder.positionMinus2;
@@ -78,44 +76,35 @@ public class TWOT implements DeterministicTracker {
     }
 
     public void update() {
-        double dL = this.leftOdometry.getInchesTravelled();
-        double dC = this.centerOdometry.getInchesTravelled();
-        double dR = this.rightOdometry.getInchesTravelled();
+        double[] arr_inputs = new double[n];
 
-        SimpleMatrix r_inputs = new SimpleMatrix(new double[][]{
-                new double[]{dL, dC, dR}
+        for (int i = 0; i < n; i++) {
+            arr_inputs[i] = this.odometryPods[i].getInchesTravelled();
+        }
+
+        SimpleMatrix inputs = new SimpleMatrix(new double[][]{
+                arr_inputs
         });
 
-        double r = r_inputs.mult(ODOMETRY_PARAMETERS_R).toArray2()[0][0];
-
-        double heading = currentPosition.getHeadingRadians();
-        double cos = Math.cos(heading);
-        double sin = Math.sin(heading);
-
-        SimpleMatrix xy_inputs = new SimpleMatrix(new double[][]{
-                new double[]{
-                        dL * cos,
-                        dL * sin,
-                        dC * cos,
-                        dC * sin,
-                        dR * cos,
-                        dR * sin
-                }
-        });
-
-        double x = xy_inputs.mult(ODOMETRY_PARAMETERS_X).toArray2()[0][0];
-        double y = xy_inputs.mult(ODOMETRY_PARAMETERS_Y).toArray2()[0][0];
+        double x = inputs.mult(ODOMETRY_PARAMETERS_X).toArray2()[0][0];
+        double y = inputs.mult(ODOMETRY_PARAMETERS_Y).toArray2()[0][0];
+        double r = inputs.mult(ODOMETRY_PARAMETERS_R).toArray2()[0][0];
 
         double deltaTime = this.elapsedTime.seconds() - this.lastTime;
         this.lastTime = this.elapsedTime.seconds();
         this.robotVelocity = Pose.multiply(new Pose(x, y, r), 1/deltaTime);
 
+        double headingRadians = currentPosition.getHeadingRadians();
+
+        double xOriented = (Math.cos(headingRadians) * x) - (Math.sin(headingRadians) * y);
+        double yOriented = (Math.cos(headingRadians) * y) + (Math.sin(headingRadians) * x);
+
         this.positionMinus2 = this.positionMinus1;
         this.positionMinus1 = this.currentPosition;
 
         this.deltaPosition = new Pose(
-                x,
-                y,
+                xOriented,
+                yOriented,
                 r
         );
 
@@ -152,9 +141,7 @@ public class TWOT implements DeterministicTracker {
         private final SimpleMatrix ODOMETRY_PARAMETERS_Y;
         private final SimpleMatrix ODOMETRY_PARAMETERS_R;
 
-        private final Odometry leftOdometry;
-        private final Odometry centerOdometry;
-        private final Odometry rightOdometry;
+        private final Odometry[] odometryPods;
 
         private final Pose robotVelocity;
         private final Pose positionMinus2;
@@ -171,39 +158,42 @@ public class TWOT implements DeterministicTracker {
                 SimpleMatrix ODOMETRY_PARAMETERS_Y,
                 SimpleMatrix ODOMETRY_PARAMETERS_R,
 
-                String leftName,
-                String centerName,
-                String rightName,
-
-                DcMotorSimple.Direction leftDirection,
-                DcMotorSimple.Direction centerDirection,
-                DcMotorSimple.Direction rightDirection
+                String[] odometryNames,
+                DcMotorSimple.Direction[] odometryDirections
         ) {
             this.ODOMETRY_PARAMETERS_X = ODOMETRY_PARAMETERS_X;
             this.ODOMETRY_PARAMETERS_Y = ODOMETRY_PARAMETERS_Y;
             this.ODOMETRY_PARAMETERS_R = ODOMETRY_PARAMETERS_R;
 
-            this.leftOdometry = new Odometry(
-                    (DcMotor)hardwareMap.get(leftName),
-                    ODOMETRY_TICKS_PER_INCH);
+            int n = odometryNames.length;
 
-            this.leftOdometry.setDirection(leftDirection);
+            assert odometryDirections.length == n : "# of Odometry Names must == # of Odometry Directions";
 
-            this.rightOdometry = new Odometry(
-                    (DcMotor)hardwareMap.get(rightName),
-                    ODOMETRY_TICKS_PER_INCH);
+            assert ODOMETRY_PARAMETERS_X.getNumRows() == 1 : "Odometry Parameters X must have 1 row";
+            assert ODOMETRY_PARAMETERS_X.getNumCols() == n : "Odometry Parameters X # of columns must match # of odometry pods";
 
-            this.rightOdometry.setDirection(rightDirection);
+            assert ODOMETRY_PARAMETERS_Y.getNumRows() == 1 : "Odometry Parameters Y must have 1 row";
+            assert ODOMETRY_PARAMETERS_Y.getNumCols() == n : "Odometry Parameters Y # of columns must match # of odometry pods";
 
-            this.centerOdometry = new Odometry(
-                    (DcMotor)hardwareMap.get(centerName),
-                    ODOMETRY_TICKS_PER_INCH);
+            assert ODOMETRY_PARAMETERS_R.getNumRows() == 1 : "Odometry Parameters R must have 1 row";
+            assert ODOMETRY_PARAMETERS_R.getNumCols() == n : "Odometry Parameters R # of columns must match # of odometry pods";
 
-            this.centerOdometry.setDirection(centerDirection);
+            odometryPods = new Odometry[n];
 
-            this.leftOdometry.reset();
-            this.rightOdometry.reset();
-            this.centerOdometry.reset();
+            for (int i = 0; i < odometryNames.length; i++) {
+                String name = odometryNames[i];
+                DcMotorSimple.Direction direction = odometryDirections[i];
+
+                Odometry odometry = new Odometry(
+                        (DcMotor)hardwareMap.get(name),
+                        ODOMETRY_TICKS_PER_INCH
+                );
+
+                odometry.setDirection(direction);
+                odometry.reset();
+
+                odometryPods[i] = odometry;
+            }
 
             this.robotVelocity = new Pose(0, 0, 0);
             this.positionMinus2 = new Pose(0, 0, 0);
@@ -214,8 +204,8 @@ public class TWOT implements DeterministicTracker {
             this.lastTime = elapsedTime.seconds();
         }
 
-        public TWOT build() {
-            return new TWOT(this);
+        public NotEnoughOdometryTracker build() {
+            return new NotEnoughOdometryTracker(this);
         }
     }
 }

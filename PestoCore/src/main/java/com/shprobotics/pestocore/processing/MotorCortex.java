@@ -1,5 +1,7 @@
 package com.shprobotics.pestocore.processing;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.HardwareDeviceManager;
 import com.qualcomm.hardware.lynx.LynxDcMotorController;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -11,8 +13,11 @@ import com.qualcomm.robotcore.hardware.DcMotorControllerEx;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DeviceManager;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoControllerEx;
+import com.qualcomm.robotcore.hardware.configuration.ServoFlavor;
+import com.qualcomm.robotcore.hardware.configuration.annotations.ServoType;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.ServoConfigurationType;
 import com.shprobotics.pestocore.hardware.CortexLinkedCRServo;
@@ -21,6 +26,7 @@ import com.shprobotics.pestocore.hardware.CortexLinkedServo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 
 public class MotorCortex {
@@ -72,7 +78,7 @@ public class MotorCortex {
         DcMotor m = deviceMgr.createDcMotorEx(controller, port, motorConfigurationType, motorConfigurationType.getName());
 
         // Since it is not automatically enabled, we manually enable it
-        MotorCortex.MotorCommands.enableMotor(m);
+        MotorCommands.enableMotor(m);
 
         // Cast to CortexLinkedMotor
         CortexLinkedMotor motor = new CortexLinkedMotor((DcMotorEx) m);
@@ -116,13 +122,43 @@ public class MotorCortex {
         // USB Scan Manager.java uses null manager?
         DeviceManager deviceMgr = new HardwareDeviceManager(hardwareMap.appContext, null);
 
-        // Using GoBILDA 5203 Motor Configuration
+        // Using default servo configuration
         ServoConfigurationType servoConfigurationType = new ServoConfigurationType();
+
+        ServoType servoAnnotation = new ServoType() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return ServoType.class;
+            }
+
+            @NonNull
+            @Override
+            public ServoFlavor flavor() {
+                return ServoFlavor.STANDARD;
+            }
+
+            @Override
+            public double usPulseLower() {
+                return PwmControl.PwmRange.usPulseLowerDefault;
+            }
+
+            @Override
+            public double usPulseUpper() {
+                return PwmControl.PwmRange.usPulseUpperDefault;
+            }
+
+            @Override
+            public double usPulseFrameRate() {
+                return PwmControl.PwmRange.usFrameDefault;
+            }
+        };
+
+        servoConfigurationType.processAnnotation(servoAnnotation);
 
         Servo s = deviceMgr.createServoEx(controller, port, servoConfigurationType.getName(), servoConfigurationType);
 
         // Since it is not automatically enabled, we manually enable it
-        MotorCortex.ServoCommands.enableServo(s);
+        ServoCommands.enableServo(s);
 
         // Cast to CortexLinkedServo
         CortexLinkedServo servo = new CortexLinkedServo(s);
@@ -171,7 +207,7 @@ public class MotorCortex {
         CRServo s = deviceMgr.createCRServoEx(controller, port, servoConfigurationType.getName(), servoConfigurationType);
 
         // Since it is not automatically enabled, we manually enable it
-        MotorCortex.ServoCommands.enableCRServo(s);
+        ServoCommands.enableCRServo(s);
 
         // Cast to CortexLinkedServo
         CortexLinkedCRServo servo = new CortexLinkedCRServo(s);

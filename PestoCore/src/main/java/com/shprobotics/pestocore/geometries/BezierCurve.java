@@ -1,7 +1,5 @@
 package com.shprobotics.pestocore.geometries;
 
-import com.acmerobotics.dashboard.config.variable.Path;
-
 public class BezierCurve {
     private final Pose[] controlPoints;
     public final int n;
@@ -52,36 +50,5 @@ public class BezierCurve {
 
     public Pose getPose() {
         return this.getPose(this.t);
-    }
-
-    public Path getEditorPath(String color, String id) {
-        Path.Vector2D[] pathVectors = new Path.Vector2D[n];
-
-        for (int i = 0; i < n; i++) {
-            pathVectors[i] = new Path.Vector2D(
-                    controlPoints[i].getX(),
-                    controlPoints[i].getY()
-            );
-        }
-
-        return new Path(
-                Path.MessageType.BEZIER_CURVE,
-                color,
-                id,
-                pathVectors,
-                null
-        );
-    }
-
-    public void modifyFromEditorPath(Path path) {
-        Path.Vector2D[] vectors = path.getCurve();
-        assert vectors.length == n;
-
-        for (int i = 0; i < vectors.length; i++) {
-            controlPoints[i] = new Pose(
-                    vectors[i].getX(),
-                    vectors[i].getY()
-            );
-        }
     }
 }

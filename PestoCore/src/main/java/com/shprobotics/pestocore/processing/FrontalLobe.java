@@ -7,7 +7,6 @@ Controls thinking, planning, problem-solving, and movement
 import android.content.Context;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.message.MessageCache;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -43,8 +42,6 @@ public class FrontalLobe {
     public static DriveController driveController;
     public static TeleOpController teleOpController;
     public static DeterministicTracker tracker;
-
-    public static PestoTelemetry pestoTelemetry;
 
     private static List<Class<?>> configurations;
 
@@ -125,12 +122,6 @@ public class FrontalLobe {
 
             }
         }
-
-        MessageCache.initialize();
-
-        pestoTelemetry = new PestoTelemetry();
-        pestoTelemetry.clearAll();
-        pestoTelemetry.update();
     }
 
     public static void addMacro(String alias, Macro macro) {
